@@ -1,17 +1,23 @@
-const express = require('express');
+import express from 'express';
+import {
+  evaluateStudentSentence,
+  checkGermanSentence,
+  generateVocabularyQuestion,
+  analyzeCommonErrors,
+} from '../controllers/aiController.js';
+
 const router = express.Router();
-const aiController = require('../controllers/aiController');
 
 // Đánh giá câu trả lời của học sinh
-router.post('/evaluate-sentence', aiController.evaluateStudentSentence);
+router.post('/evaluate-sentence', evaluateStudentSentence);
 
 // Kiểm tra câu tiếng Đức
-router.post('/check-german-sentence', aiController.checkGermanSentence);
+router.post('/check-german-sentence', checkGermanSentence);
 
 // Tạo câu hỏi cho từ vựng
-router.post('/generate-question', aiController.generateVocabularyQuestion);
+router.post('/generate-question', generateVocabularyQuestion);
 
 // Phân tích lỗi thường gặp
-router.post('/analyze-errors', aiController.analyzeCommonErrors);
+router.post('/analyze-errors', analyzeCommonErrors);
 
-module.exports = router;
+export default router;

@@ -1,74 +1,74 @@
-const express = require('express');
-const cors = require('cors');
-const connectDB = require('./config/db');
-const levelRoutes = require('./routes/levelRoutes');
-const lektionRoutes = require('./routes/lektionRoutes');
-const vocabularyRoutes = require('./routes/vocabularyRoutes');
-const aiRoutes = require('./routes/aiRoutes');
+import express from 'express';
+import cors from 'cors';
+import connectDB from './config/db.js';
+
+// Import routes
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import vocabularyRoutes from './routes/vocabularyRoutes.js';
+import quizRoutes from './routes/quizRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import levelRoutes from './routes/levelRoutes.js';
+import lektionRoutes from './routes/lektionRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+
+// Import middlewares
+import { errorMiddleware } from './middlewares/errorMiddleware.js';
 
 const app = express();
 
-// CORS configuration - Allow all origins
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Connect to MongoDB (can be skipped during route inspection)
+if (process.env.SKIP_DB_CONNECT !== 'true') {
+  connectDB();
+}
 
-// Connect to MongoDB
-connectDB();
+// Middleware
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.get('/', (req, res) => res.json({ message: 'Hello from VocabApp' }));
+// Test endpoints
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'VocabApp Backend API',
+    version: '1.0.0',
+  });
+});
 
-// Test DB connection
-app.get('/test-db', async (req, res) => {
-  try {
-    const mongoose = require('mongoose');
-    const db = mongoose.connection.db;
-    const collections = await db.listCollections().toArray();
-    res.json({ status: 'Connected', collections: collections.map(c => c.name) });
-  } catch (error) {
-    res.status(500).json({ status: 'Error', error: error.message });
-  }
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use(['/api/vocabularies', '/api/vocabulary'], vocabularyRoutes);
+app.use('/api/quizzes', quizRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/levels', levelRoutes);
 app.use('/api/lektions', lektionRoutes);
-app.use('/api/vocabulary', vocabularyRoutes);
-app.use('/api/ai', aiRoutes); // Uncommented for AI functionality
+app.use('/api/ai', aiRoutes);
 
-// Test AI route - direct in app.js
-app.get('/api/ai/test', (req, res) => {
-  res.json({ message: 'AI routes are working!', timestamp: new Date() });
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl,
+  });
 });
 
-// Direct AI evaluation route - TEST VERSION (commented out to avoid conflict)
-// app.post('/api/ai/evaluate-sentence', async (req, res) => {
-//   console.log('AI evaluate-sentence called with:', req.body);
-//   try {
-//     const { sentence, vocabulary } = req.body;
-//     res.json({
-//       success: true,
-//       message: 'AI evaluation endpoint working',
-//       data: {
-//         sentence,
-//         vocabulary,
-//         evaluation: {
-//           score: 8,
-//           accuracy: 'Good',
-//           feedback: 'Test feedback'
-//         }
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error in evaluate-sentence:', error);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// });
+// Error handling middleware (must be last)
+app.use(errorMiddleware);
 
-console.log('AI Routes loaded at /api/ai');
+export default app;
 
-module.exports = app;

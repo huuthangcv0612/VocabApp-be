@@ -1,14 +1,19 @@
-const express = require('express');
-const router = express.Router();
-const levelController = require('../controllers/levelController');
+import express from 'express';
+import {
+  getAllLevels,
+  getLevelById,
+  getLevelByName,
+} from '../controllers/levelController.js';
 
-// Lấy tất cả Level
-router.get('/', levelController.getAllLevels);
+const router = express.Router();
+
+// Lấy tất cả các Level
+router.get('/', getAllLevels);
 
 // Lấy Level theo ID
-router.get('/:id', levelController.getLevelById);
+router.get('/:id', getLevelById);
 
 // Lấy Level theo tên
-router.get('/name/:name', levelController.getLevelByName);
+router.get('/name/:name', getLevelByName);
 
-module.exports = router;
+export default router;

@@ -1,35 +1,57 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const vocabularySchema = new mongoose.Schema(
   {
-    lektionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Lektion',
-      required: true
-    },
-    word: {
+    germanWord: {
       type: String,
-      required: true,
-      trim: true
+      required: [true, 'Please provide a German word'],
+      trim: true,
+      unique: true,
     },
-    type: {
+    vietnameseMeaning: {
+      type: String,
+      required: [true, 'Please provide Vietnamese meaning'],
+      trim: true,
+    },
+    exampleSentence: {
+      german: {
+        type: String,
+        default: null,
+      },
+      vietnamese: {
+        type: String,
+        default: null,
+      },
+    },
+    topic: {
+      type: String,
+      required: [true, 'Please provide a topic'],
+      trim: true,
+    },
+    difficultyLevel: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced'],
+      default: 'beginner',
+    },
+    partOfSpeech: {
       type: String,
       enum: ['noun', 'verb', 'adjective', 'adverb', 'other'],
-      default: 'other'
+      default: 'other',
     },
-    meaning: {
+    pronunciation: {
       type: String,
-      required: true,
-      trim: true
+      default: null,
     },
-    example: {
-      type: mongoose.Schema.Types.Mixed,
-      default: null
-    }
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
-module.exports = mongoose.model('Vocabulary', vocabularySchema);
+export default mongoose.model('Vocabulary', vocabularySchema);
+

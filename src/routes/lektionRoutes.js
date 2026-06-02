@@ -1,14 +1,19 @@
-const express = require('express');
+import express from 'express';
+import {
+  getAllLektions,
+  getLektionById,
+  getLektionsByLevelId,
+} from '../controllers/lektionController.js';
+
 const router = express.Router();
-const lektionController = require('../controllers/lektionController');
 
 // Lấy tất cả Lektion
-router.get('/', lektionController.getAllLektions);
+router.get('/', getAllLektions);
 
 // Lấy Lektion theo ID
-router.get('/:id', lektionController.getLektionById);
+router.get('/:id', getLektionById);
 
 // Lấy Lektion theo Level ID
-router.get('/level/:levelId', lektionController.getLektionsByLevelId);
+router.get('/level/:levelId', getLektionsByLevelId);
 
-module.exports = router;
+export default router;

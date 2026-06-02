@@ -1,20 +1,23 @@
-const express = require('express');
+import express from 'express';
+import {
+  getAllVocabularies,
+  getVocabularyById,
+  createVocabulary,
+  updateVocabulary,
+  deleteVocabulary,
+  searchVocabularies,
+} from '../controllers/vocabularyController.js';
+import { verifyToken } from '../middlewares/authMiddleware.js';
+import { isAdmin } from '../middlewares/adminMiddleware.js';
+
 const router = express.Router();
-const vocabularyController = require('../controllers/vocabularyController');
 
-// Lấy tất cả Vocabulary
-router.get('/', vocabularyController.getAllVocabulary);
+router.get('/', getAllVocabularies);
+router.get('/search/:query', searchVocabularies);
+router.get('/:id', getVocabularyById);
+router.post('/', verifyToken, isAdmin, createVocabulary);
+router.put('/:id', verifyToken, isAdmin, updateVocabulary);
+router.delete('/:id', verifyToken, isAdmin, deleteVocabulary);
 
-// Tìm kiếm Vocabulary
-router.get('/search', vocabularyController.searchVocabulary);
+export default router;
 
-// Lấy Vocabulary theo loại (type)
-router.get('/type/:type', vocabularyController.getVocabularyByType);
-
-// Lấy Vocabulary theo ID
-router.get('/:id', vocabularyController.getVocabularyById);
-
-// Lấy Vocabulary theo Lektion ID
-router.get('/lektion/:lektionId', vocabularyController.getVocabularyByLektionId);
-
-module.exports = router;

@@ -1,11 +1,11 @@
-const OpenAI = require('openai');
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Nhận xét câu trả lời của học sinh
-exports.evaluateStudentSentence = async (req, res) => {
+export const evaluateStudentSentence = async (req, res) => {
   try {
     const { sentence, vocabulary, context } = req.body;
 
@@ -101,7 +101,7 @@ ${context ? `- Ngữ cảnh: ${context}` : ''}
 };
 
 // Kiểm tra câu tiếng Đức
-exports.checkGermanSentence = async (req, res) => {
+export const checkGermanSentence = async (req, res) => {
   try {
     const { sentence } = req.body;
 
@@ -126,14 +126,18 @@ Sentence: "${sentence}"
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
+        {
+          role: "system",
+          content: "You are a helpful language learning assistant."
+        },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0,
+      temperature: 0.3,
       max_tokens: 200
     });
 
@@ -168,7 +172,7 @@ Sentence: "${sentence}"
 };
 
 // Tạo câu hỏi mẫu cho từ vựng
-exports.generateVocabularyQuestion = async (req, res) => {
+export const generateVocabularyQuestion = async (req, res) => {
   try {
     const { vocabulary, level } = req.body;
 
@@ -248,7 +252,7 @@ Tạo một câu hỏi đơn giản bằng tiếng Anh để học sinh sử d�
 };
 
 // Phân tích lỗi thường gặp của học sinh
-exports.analyzeCommonErrors = async (req, res) => {
+export const analyzeCommonErrors = async (req, res) => {
   try {
     const { sentences, vocabulary } = req.body;
 

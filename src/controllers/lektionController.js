@@ -1,7 +1,7 @@
-const Lektion = require('../models/Lektion');
+import Lektion from '../models/Lektion.js';
 
 // Lấy tất cả các Lektion
-exports.getAllLektions = async (req, res) => {
+export const getAllLektions = async (req, res) => {
   try {
     const lektions = await Lektion.find()
       .populate('level_id', 'level_name')
@@ -20,7 +20,7 @@ exports.getAllLektions = async (req, res) => {
 };
 
 // Lấy Lektion theo ID
-exports.getLektionById = async (req, res) => {
+export const getLektionById = async (req, res) => {
   try {
     const lektion = await Lektion.findById(req.params.id)
       .populate('level_id', 'level_name');
@@ -43,7 +43,7 @@ exports.getLektionById = async (req, res) => {
 };
 
 // Lấy tất cả Lektion theo Level ID
-exports.getLektionsByLevelId = async (req, res) => {
+export const getLektionsByLevelId = async (req, res) => {
   try {
     const lektions = await Lektion.find({ level_id: req.params.levelId })
       .populate('level_id', 'level_name')
