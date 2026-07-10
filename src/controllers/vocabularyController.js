@@ -67,7 +67,7 @@ export const getVocabularyById = asyncHandler(async (req, res, next) => {
  * @access  Private/Admin
  */
 export const createVocabulary = asyncHandler(async (req, res, next) => {
-  const { germanWord, vietnameseMeaning, exampleSentence, topic, difficultyLevel } = req.body;
+  const { germanWord, vietnameseMeaning, exampleSentence, topic, difficultyLevel, lektionId } = req.body;
 
   if (!germanWord || !vietnameseMeaning || !topic) {
     throw new AppError(ERROR_MESSAGES.VALIDATION_ERROR, HTTP_STATUS.BAD_REQUEST);
@@ -79,6 +79,7 @@ export const createVocabulary = asyncHandler(async (req, res, next) => {
     exampleSentence,
     topic,
     difficultyLevel,
+    lektionId,
     createdBy: req.user.id,
   });
 

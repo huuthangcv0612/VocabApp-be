@@ -1,4 +1,13 @@
 import Lektion from '../models/Lektion.js';
+import Vocabulary from '../models/Vocabulary.js';
+
+const attachVocabularyCount = async (lektion) => {
+  const vocabularyCount = await Vocabulary.countDocuments({ lektionId: lektion._id });
+  return {
+    ...lektion.toObject(),
+    vocabularyCount,
+  };
+};
 
 // Lấy tất cả các Lektion
 export const getAllLektions = async (req, res) => {
@@ -6,10 +15,15 @@ export const getAllLektions = async (req, res) => {
     const lektions = await Lektion.find()
       .populate('level_id', 'level_name')
       .sort({ order: 1 });
+
+    const lektionsWithCount = await Promise.all(
+      lektions.map((lektion) => attachVocabularyCount(lektion))
+    );
+
     res.status(200).json({
       success: true,
-      count: lektions.length,
-      data: lektions
+      count: lektionsWithCount.length,
+      data: lektionsWithCount
     });
   } catch (error) {
     res.status(500).json({
@@ -30,9 +44,12 @@ export const getLektionById = async (req, res) => {
         error: 'Lektion not found'
       });
     }
+
+    const lektionWithCount = await attachVocabularyCount(lektion);
+
     res.status(200).json({
       success: true,
-      data: lektion
+      data: lektionWithCount
     });
   } catch (error) {
     res.status(500).json({
@@ -48,10 +65,15 @@ export const getLektionsByLevelId = async (req, res) => {
     const lektions = await Lektion.find({ level_id: req.params.levelId })
       .populate('level_id', 'level_name')
       .sort({ order: 1 });
+
+    const lektionsWithCount = await Promise.all(
+      lektions.map((lektion) => attachVocabularyCount(lektion))
+    );
+
     res.status(200).json({
       success: true,
-      count: lektions.length,
-      data: lektions
+      count: lektionsWithCount.length,
+      data: lektionsWithCount
     });
   } catch (error) {
     res.status(500).json({
