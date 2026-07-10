@@ -25,7 +25,7 @@ if (process.env.SKIP_DB_CONNECT !== 'true') {
 // Middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

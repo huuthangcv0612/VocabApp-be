@@ -28,6 +28,11 @@ const vocabularySchema = new mongoose.Schema(
       required: [true, 'Please provide a topic'],
       trim: true,
     },
+    lektionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Lektion',
+      default: null,
+    },
     difficultyLevel: {
       type: String,
       enum: ['beginner', 'intermediate', 'advanced'],
