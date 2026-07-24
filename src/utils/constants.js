@@ -44,6 +44,6 @@ export const SUCCESS_MESSAGES = {
 
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
-  DEFAULT_LIMIT: 10,
-  MAX_LIMIT: 100,
+  DEFAULT_LIMIT: 200,
+  MAX_LIMIT: 200,
 };
