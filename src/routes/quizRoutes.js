@@ -12,11 +12,13 @@ import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
+router.use(verifyToken);
+
 router.get('/', getAllQuizzes);
 router.get('/:id', getQuizById);
-router.post('/', verifyToken, isAdmin, createQuiz);
-router.put('/:id', verifyToken, isAdmin, updateQuiz);
-router.delete('/:id', verifyToken, isAdmin, deleteQuiz);
-router.patch('/:id/publish', verifyToken, isAdmin, togglePublishQuiz);
+router.post('/', isAdmin, createQuiz);
+router.put('/:id', isAdmin, updateQuiz);
+router.delete('/:id', isAdmin, deleteQuiz);
+router.patch('/:id/publish', isAdmin, togglePublishQuiz);
 
 export default router;

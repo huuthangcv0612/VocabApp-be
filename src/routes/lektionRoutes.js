@@ -4,8 +4,11 @@ import {
   getLektionById,
   getLektionsByLevelId,
 } from '../controllers/lektionController.js';
+import { verifyToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+router.use(verifyToken);
 
 // Lấy tất cả Lektion
 router.get('/', getAllLektions);

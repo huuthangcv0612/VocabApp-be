@@ -12,12 +12,14 @@ import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
+router.use(verifyToken);
+
 router.get('/', getAllVocabularies);
 router.get('/search/:query', searchVocabularies);
 router.get('/:id', getVocabularyById);
-router.post('/', verifyToken, isAdmin, createVocabulary);
-router.put('/:id', verifyToken, isAdmin, updateVocabulary);
-router.delete('/:id', verifyToken, isAdmin, deleteVocabulary);
+router.post('/', isAdmin, createVocabulary);
+router.put('/:id', isAdmin, updateVocabulary);
+router.delete('/:id', isAdmin, deleteVocabulary);
 
 export default router;
 

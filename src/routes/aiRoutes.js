@@ -5,8 +5,11 @@ import {
   generateVocabularyQuestion,
   analyzeCommonErrors,
 } from '../controllers/aiController.js';
+import { verifyToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+router.use(verifyToken);
 
 // Đánh giá câu trả lời của học sinh
 router.post('/evaluate-sentence', evaluateStudentSentence);

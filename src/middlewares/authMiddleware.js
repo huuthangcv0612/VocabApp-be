@@ -5,7 +5,10 @@ import { ERROR_MESSAGES } from '../utils/constants.js';
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const tokenFromCookie = req.cookies?.token;
+    const token = tokenFromHeader || tokenFromCookie;
 
     if (!token) {
       throw new AppError(ERROR_MESSAGES.TOKEN_REQUIRED, 401);

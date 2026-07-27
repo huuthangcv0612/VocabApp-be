@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Vocabulary from '../models/Vocabulary.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
@@ -16,14 +17,41 @@ export const getAllVocabularies = asyncHandler(async (req, res, next) => {
     PAGINATION.MAX_LIMIT
   );
   const skip = (page - 1) * limit;
+  const rawLektionId = req.query.lektionId;
 
-  const vocabularies = await Vocabulary.find()
+  let filter = {};
+
+  if (rawLektionId !== undefined && rawLektionId !== null && String(rawLektionId).trim() !== '') {
+    const lektionId = String(rawLektionId).trim();
+
+    if (!mongoose.isValidObjectId(lektionId)) {
+      sendResponse(
+        res,
+        HTTP_STATUS.OK,
+        'Vocabularies fetched successfully',
+        {
+          vocabularies: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            pages: 0,
+          },
+        }
+      );
+      return;
+    }
+
+    filter = { lektionId };
+  }
+
+  const vocabularies = await Vocabulary.find(filter)
     .skip(skip)
     .limit(limit)
     .populate('createdBy', 'name email')
     .sort({ createdAt: -1 });
 
-  const total = await Vocabulary.countDocuments();
+  const total = await Vocabulary.countDocuments(filter);
 
   sendResponse(
     res,
