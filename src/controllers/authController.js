@@ -11,14 +11,14 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES, HTTP_STATUS } from '../utils/constant
 import { sendEmail } from '../utils/emailService.js';
 import { sendResponse } from '../utils/responseHandler.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const getJwtSecret = () => process.env.JWT_SECRET || 'your_jwt_secret';
+const getJwtExpiresIn = () => process.env.JWT_EXPIRES_IN || '7d';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+  return jwt.sign({ id: userId }, getJwtSecret(), {
+    expiresIn: getJwtExpiresIn(),
   });
 };
 

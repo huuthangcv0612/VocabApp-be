@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -86,4 +87,3 @@ app.use((req, res) => {
 app.use(errorMiddleware);
 
 export default app;
-
