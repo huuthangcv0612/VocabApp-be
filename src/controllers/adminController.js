@@ -1,6 +1,9 @@
 import User from '../models/User.js';
 import Vocabulary from '../models/Vocabulary.js';
 import Quiz from '../models/Quiz.js';
+import Question from '../models/Question.js';
+import Test from '../models/Test.js';
+import TestResult from '../models/TestResult.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
 import { sendResponse } from '../utils/responseHandler.js';
@@ -120,7 +123,7 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Get statistics
+ * @desc    Get statistics for Admin Dashboard
  * @route   GET /api/admin/statistics
  * @access  Private/Admin
  */
@@ -131,6 +134,21 @@ export const getStatistics = asyncHandler(async (req, res, next) => {
   const totalVocabularies = await Vocabulary.countDocuments();
   const totalQuizzes = await Quiz.countDocuments();
   const publishedQuizzes = await Quiz.countDocuments({ isPublished: true });
+
+  // Question Bank Stats
+  const totalQuestions = await Question.countDocuments();
+  const questionsByLevel = {
+    A1: await Question.countDocuments({ level: 'A1' }),
+    A2: await Question.countDocuments({ level: 'A2' }),
+    B1: await Question.countDocuments({ level: 'B1' }),
+    B2: await Question.countDocuments({ level: 'B2' }),
+    C1: await Question.countDocuments({ level: 'C1' }),
+    C2: await Question.countDocuments({ level: 'C2' }),
+  };
+
+  // Test & Results Stats
+  const totalTests = await Test.countDocuments();
+  const totalResults = await TestResult.countDocuments();
 
   const recentUsers = await User.find()
     .sort({ createdAt: -1 })
@@ -147,6 +165,10 @@ export const getStatistics = asyncHandler(async (req, res, next) => {
       totalVocabularies,
       totalQuizzes,
       publishedQuizzes,
+      totalQuestions,
+      questionsByLevel,
+      totalTests,
+      totalResults,
       recentUsers,
     }
   );

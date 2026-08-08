@@ -42,16 +42,19 @@ const clearAuthCookie = (res) => {
 };
 
 const buildUserPayload = (user) => ({
+  _id: user._id,
   id: user._id,
   name: user.name,
+  username: user.username,
   email: user.email,
   role: user.role,
+  avatar: user.avatar,
   isEmailVerified: user.isEmailVerified,
 });
 
 const sendVerificationEmail = async (user, token) => {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-  const link = `${baseUrl}/api/auth/verify-email?token=${token}`;
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+  const link = `${baseUrl}/verify-email?token=${token}`;
 
   await sendEmail({
     to: user.email,
@@ -61,8 +64,8 @@ const sendVerificationEmail = async (user, token) => {
 };
 
 const sendPasswordResetEmail = async (user, token) => {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-  const link = `${baseUrl}/api/auth/reset-password?token=${token}`;
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+  const link = `${baseUrl}/reset-password?token=${token}`;
 
   await sendEmail({
     to: user.email,
@@ -172,11 +175,17 @@ export const login = asyncHandler(async (req, res, next) => {
   const token = generateToken(user._id);
   setAuthCookie(res, token);
 
+  const userPayload = buildUserPayload(user);
+
   return res.status(200).json({
     success: true,
     message: 'Đăng nhập thành công',
     token,
-    user: buildUserPayload(user),
+    user: userPayload,
+    data: {
+      token,
+      user: userPayload,
+    },
   });
 });
 
@@ -289,7 +298,8 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
  * @access  Public
  */
 export const resetPassword = asyncHandler(async (req, res, next) => {
-  const { token, password, confirmPassword } = req.body;
+  const { token, password } = req.body;
+  const confirmPassword = req.body.confirmPassword || req.body.passwordConfirm;
 
   if (!token || !password || !confirmPassword) {
     throw new AppError(ERROR_MESSAGES.VALIDATION_ERROR, HTTP_STATUS.BAD_REQUEST);
@@ -417,13 +427,16 @@ export const googleLogin = asyncHandler(async (req, res, next) => {
  */
 export const getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
+  const userPayload = user ? buildUserPayload(user) : null;
 
-  sendResponse(
-    res,
-    HTTP_STATUS.OK,
-    'User fetched successfully',
-    { user }
-  );
+  return res.status(200).json({
+    success: true,
+    message: 'User fetched successfully',
+    user: userPayload,
+    data: {
+      user: userPayload,
+    },
+  });
 });
 
 export default {
