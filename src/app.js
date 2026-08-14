@@ -13,7 +13,9 @@ import vocabularyRoutes from './routes/vocabularyRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import levelRoutes from './routes/levelRoutes.js';
+import topicRoutes from './routes/topicRoutes.js';
 import lektionRoutes from './routes/lektionRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 
 // Import middlewares
@@ -71,7 +73,9 @@ app.use(['/api/vocabularies', '/api/vocabulary'], vocabularyRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/levels', levelRoutes);
+app.use('/api/topics', topicRoutes);
 app.use('/api/lektions', lektionRoutes);
+app.use('/api/progress', progressRoutes);
 app.use('/api/ai', aiRoutes);
 
 // 404 handler

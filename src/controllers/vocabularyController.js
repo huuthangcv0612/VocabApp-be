@@ -271,9 +271,38 @@ export const searchVocabularies = asyncHandler(async (req, res, next) => {
   );
 });
 
+/**
+ * @desc    Get vocabularies by Lektion ID (Step 6 of curriculum flow)
+ * @route   GET /api/vocabularies/lektion/:lektionId
+ * @access  Public / User
+ */
+export const getVocabulariesByLektion = asyncHandler(async (req, res, next) => {
+  const { lektionId } = req.params;
+
+  if (!mongoose.isValidObjectId(lektionId)) {
+    throw new AppError('Invalid lektion ID format', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const vocabularies = await Vocabulary.find({
+    $or: [{ lektionId }, { lektion_id: lektionId }],
+  }).populate('lektionId', 'lektion_name order');
+
+  sendResponse(
+    res,
+    HTTP_STATUS.OK,
+    'Vocabularies for lektion fetched successfully',
+    {
+      vocabularies,
+      count: vocabularies.length,
+      data: vocabularies,
+    }
+  );
+});
+
 export default {
   getAllVocabularies,
   getVocabularyById,
+  getVocabulariesByLektion,
   createVocabulary,
   updateVocabulary,
   deleteVocabulary,

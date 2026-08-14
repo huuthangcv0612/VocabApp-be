@@ -24,9 +24,15 @@ const vocabularySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['noun', 'verb', 'adjective', 'adverb', 'phrase', 'other'],
       default: 'noun',
       lowercase: true,
+      trim: true,
+    },
+    part_of_speech: {
+      type: String,
+      default: null,
+      lowercase: true,
+      trim: true,
     },
     meaning: {
       type: String,
@@ -48,7 +54,17 @@ const vocabularySchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    example_translation: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     audio: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    audio_url: {
       type: String,
       default: null,
       trim: true,
@@ -58,21 +74,40 @@ const vocabularySchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
-    // Existing relation & metadata attributes (preserved)
+    image_url: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     lektionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Lektion',
+      default: null,
+    },
+    lektion_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Lektion',
       default: null,
     },
     difficultyLevel: {
       type: String,
-      enum: ['A1', 'A2', 'B1', 'beginner', 'intermediate', 'advanced'],
       default: 'A1',
+      trim: true,
+    },
+    level: {
+      type: String,
+      default: 'A1',
+      trim: true,
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
+      default: null,
     },
   },
   {
@@ -82,7 +117,48 @@ const vocabularySchema = new mongoose.Schema(
   }
 );
 
-// Backward compatibility virtuals for existing legacy codebase
+// Pre-save hook to synchronize key field aliases
+vocabularySchema.pre('save', function (next) {
+  if (this.lektion_id && !this.lektionId) {
+    this.lektionId = this.lektion_id;
+  } else if (this.lektionId && !this.lektion_id) {
+    this.lektion_id = this.lektionId;
+  }
+
+  if (this.part_of_speech && !this.type) {
+    this.type = this.part_of_speech;
+  } else if (this.type && !this.part_of_speech) {
+    this.part_of_speech = this.type;
+  }
+
+  if (this.example_translation && !this.translation) {
+    this.translation = this.example_translation;
+  } else if (this.translation && !this.example_translation) {
+    this.example_translation = this.translation;
+  }
+
+  if (this.audio_url && !this.audio) {
+    this.audio = this.audio_url;
+  } else if (this.audio && !this.audio_url) {
+    this.audio_url = this.audio;
+  }
+
+  if (this.image_url && !this.image) {
+    this.image = this.image_url;
+  } else if (this.image && !this.image_url) {
+    this.image_url = this.image;
+  }
+
+  if (this.level && !this.difficultyLevel) {
+    this.difficultyLevel = this.level;
+  } else if (this.difficultyLevel && !this.level) {
+    this.level = this.difficultyLevel;
+  }
+
+  next();
+});
+
+// Backward compatibility virtuals
 vocabularySchema.virtual('germanWord').get(function () {
   return this.word;
 }).set(function (v) {
@@ -96,22 +172,22 @@ vocabularySchema.virtual('vietnameseMeaning').get(function () {
 });
 
 vocabularySchema.virtual('partOfSpeech').get(function () {
-  return this.type;
-}).set(function (v) {
-  this.type = v;
+  return this.part_of_speech || this.type;
 });
 
 vocabularySchema.virtual('exampleSentence').get(function () {
   return {
     german: this.example,
-    vietnamese: this.translation,
+    vietnamese: this.example_translation || this.translation,
   };
 });
 
-// Indexing for high performance search across admin dashboard
+// Indexing for high performance search
 vocabularySchema.index({ word: 1 });
 vocabularySchema.index({ meaning: 1 });
 vocabularySchema.index({ lektionId: 1 });
+vocabularySchema.index({ lektion_id: 1 });
 vocabularySchema.index({ difficultyLevel: 1 });
+vocabularySchema.index({ level: 1 });
 
 export default mongoose.model('Vocabulary', vocabularySchema);
