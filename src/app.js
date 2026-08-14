@@ -17,6 +17,9 @@ import topicRoutes from './routes/topicRoutes.js';
 import lektionRoutes from './routes/lektionRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import questionRoutes from './routes/questionRoutes.js';
+import testRoutes from './routes/testRoutes.js';
+import testResultRoutes from './routes/testResultRoutes.js';
 
 // Import middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -77,6 +80,9 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/lektions', lektionRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/tests', testRoutes);
+app.use('/api/test-results', testResultRoutes);
 
 // 404 handler
 app.use((req, res) => {
