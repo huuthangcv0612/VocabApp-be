@@ -118,7 +118,7 @@ const vocabularySchema = new mongoose.Schema(
 );
 
 // Pre-save hook to synchronize key field aliases
-vocabularySchema.pre('save', function (next) {
+vocabularySchema.pre('save', function () {
   if (this.lektion_id && !this.lektionId) {
     this.lektionId = this.lektion_id;
   } else if (this.lektionId && !this.lektion_id) {
@@ -154,8 +154,6 @@ vocabularySchema.pre('save', function (next) {
   } else if (this.difficultyLevel && !this.level) {
     this.level = this.difficultyLevel;
   }
-
-  next();
 });
 
 // Backward compatibility virtuals
