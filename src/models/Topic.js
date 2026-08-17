@@ -25,6 +25,11 @@ const topicSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    image_url: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     icon: {
       type: String,
       default: null,
@@ -33,6 +38,11 @@ const topicSchema = new mongoose.Schema(
     order: {
       type: Number,
       default: 1,
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published'],
+      default: 'published',
     },
     isActive: {
       type: Boolean,
@@ -51,12 +61,24 @@ topicSchema.virtual('displayName').get(function () {
   return this.name || this.topic_name;
 });
 
-// Pre-save hook to ensure both name and topic_name are populated
+// Pre-save hook to ensure both name and topic_name are populated & sync image_url/icon/status/isActive
 topicSchema.pre('save', function (next) {
   if (this.name && !this.topic_name) {
     this.topic_name = this.name;
   } else if (this.topic_name && !this.name) {
     this.name = this.topic_name;
+  }
+
+  if (this.image_url && !this.icon) {
+    this.icon = this.image_url;
+  } else if (this.icon && !this.image_url) {
+    this.image_url = this.icon;
+  }
+
+  if (this.status === 'draft') {
+    this.isActive = false;
+  } else if (this.status === 'published') {
+    this.isActive = true;
   }
   next();
 });
@@ -65,5 +87,6 @@ topicSchema.index({ level_id: 1 });
 topicSchema.index({ name: 1 });
 topicSchema.index({ topic_name: 1 });
 topicSchema.index({ slug: 1 });
+topicSchema.index({ status: 1 });
 
 export default mongoose.model('Topic', topicSchema);

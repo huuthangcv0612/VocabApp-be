@@ -6,21 +6,34 @@ const userVocabularyProgressSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      index: true,
     },
     vocabulary_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vocabulary',
       required: true,
+      index: true,
+    },
+    lesson_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Lesson',
+      default: null,
     },
     lektion_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Lektion',
-      required: true,
+      default: null,
     },
     status: {
       type: String,
-      enum: ['learning', 'learned'],
-      default: 'learning',
+      enum: ['new', 'learning', 'review', 'mastered', 'learned'],
+      default: 'new',
+    },
+    mastery_score: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
     },
     correct_count: {
       type: Number,
@@ -30,21 +43,30 @@ const userVocabularyProgressSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    review_count: {
+    streak: {
       type: Number,
       default: 0,
     },
+    interval: {
+      type: Number,
+      default: 1, // in days
+    },
     last_reviewed_at: {
+      type: Date,
+      default: null,
+    },
+    next_review_at: {
       type: Date,
       default: null,
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-// Một user chỉ có một progress cho một Vocabulary
 userVocabularyProgressSchema.index(
   {
     user_id: 1,

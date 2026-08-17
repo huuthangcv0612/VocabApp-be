@@ -20,6 +20,9 @@ import aiRoutes from './routes/aiRoutes.js';
 import questionRoutes from './routes/questionRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import testResultRoutes from './routes/testResultRoutes.js';
+import unitRoutes from './routes/unitRoutes.js';
+import lessonRoutes from './routes/lessonRoutes.js';
+import exerciseRoutes from './routes/exerciseRoutes.js';
 
 // Import middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -77,6 +80,9 @@ app.use('/api/quizzes', quizRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/levels', levelRoutes);
 app.use('/api/topics', topicRoutes);
+app.use('/api/units', unitRoutes);
+app.use('/api/lessons', lessonRoutes);
+app.use('/api/exercises', exerciseRoutes);
 app.use('/api/lektions', lektionRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/ai', aiRoutes);
