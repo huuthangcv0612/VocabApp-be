@@ -23,6 +23,10 @@ import testResultRoutes from './routes/testResultRoutes.js';
 import unitRoutes from './routes/unitRoutes.js';
 import lessonRoutes from './routes/lessonRoutes.js';
 import exerciseRoutes from './routes/exerciseRoutes.js';
+import planRoutes from './routes/planRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
 // Import middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -89,6 +93,11 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/test-results', testResultRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+
 
 // 404 handler
 app.use((req, res) => {
