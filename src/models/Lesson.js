@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 const lessonSchema = new mongoose.Schema(
   {
+    level_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Level',
+      required: [true, 'Please specify a level_id for the lesson'],
+      index: true,
+    },
     unit_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Unit',
@@ -49,6 +55,7 @@ const lessonSchema = new mongoose.Schema(
   }
 );
 
+lessonSchema.index({ level_id: 1, order: 1 });
 lessonSchema.index({ unit_id: 1, order: 1 });
 lessonSchema.index({ slug: 1 });
 

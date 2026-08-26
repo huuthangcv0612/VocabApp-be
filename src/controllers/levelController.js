@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import Level from '../models/Level.js';
-import Lektion from '../models/Lektion.js';
 import Topic from '../models/Topic.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
@@ -70,9 +69,7 @@ export const getTopicsByLevel = asyncHandler(async (req, res) => {
     throw new AppError('Level not found', HTTP_STATUS.NOT_FOUND);
   }
 
-  // Find distinct topic_ids from lektions matching level._id
-  const topicIds = await Lektion.distinct('topic_id', { level_id: level._id });
-  const topics = await Topic.find({ _id: { $in: topicIds } }).sort({ order: 1, topic_name: 1 });
+  const topics = await Topic.find({ level_id: level._id }).sort({ order: 1, topic_name: 1 });
 
   sendResponse(res, HTTP_STATUS.OK, 'Topics for level fetched successfully', {
     level,

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Lesson from '../models/Lesson.js';
+import Level from '../models/Level.js';
 import Unit from '../models/Unit.js';
 import Exercise from '../models/Exercise.js';
 import LessonVocabulary from '../models/LessonVocabulary.js';
@@ -16,6 +17,19 @@ import { HTTP_STATUS } from '../utils/constants.js';
  */
 export const getAllLessons = asyncHandler(async (req, res) => {
   const filter = {};
+
+  if (req.query.level_id || req.query.levelId) {
+    const levelId = req.query.level_id || req.query.levelId;
+    if (!mongoose.isValidObjectId(levelId)) {
+      throw new AppError('Invalid Level ID', HTTP_STATUS.BAD_REQUEST);
+    }
+    const levelExists = await Level.findById(levelId);
+    if (!levelExists) {
+      throw new AppError('Level not found', HTTP_STATUS.NOT_FOUND);
+    }
+    filter.level_id = levelId;
+  }
+
   if (req.query.unit_id || req.query.unitId) {
     const unitId = req.query.unit_id || req.query.unitId;
     if (mongoose.isValidObjectId(unitId)) {
@@ -28,6 +42,7 @@ export const getAllLessons = asyncHandler(async (req, res) => {
   }
 
   const lessons = await Lesson.find(filter)
+    .populate('level_id', 'level_name description order')
     .populate({
       path: 'unit_id',
       select: 'title slug topic_id order',
@@ -52,19 +67,23 @@ export const getLessonById = asyncHandler(async (req, res) => {
   let lesson = null;
 
   if (mongoose.isValidObjectId(id)) {
-    lesson = await Lesson.findById(id).populate({
-      path: 'unit_id',
-      select: 'title slug topic_id order',
-      populate: { path: 'topic_id', select: 'name topic_name slug' },
-    });
+    lesson = await Lesson.findById(id)
+      .populate('level_id', 'level_name description order')
+      .populate({
+        path: 'unit_id',
+        select: 'title slug topic_id order',
+        populate: { path: 'topic_id', select: 'name topic_name slug' },
+      });
   }
 
   if (!lesson) {
-    lesson = await Lesson.findOne({ slug: id }).populate({
-      path: 'unit_id',
-      select: 'title slug topic_id order',
-      populate: { path: 'topic_id', select: 'name topic_name slug' },
-    });
+    lesson = await Lesson.findOne({ slug: id })
+      .populate('level_id', 'level_name description order')
+      .populate({
+        path: 'unit_id',
+        select: 'title slug topic_id order',
+        populate: { path: 'topic_id', select: 'name topic_name slug' },
+      });
   }
 
   if (!lesson) {
@@ -129,7 +148,9 @@ export const getLessonsByUnit = asyncHandler(async (req, res) => {
     throw new AppError('Invalid Unit ID', HTTP_STATUS.BAD_REQUEST);
   }
 
-  const lessons = await Lesson.find({ unit_id: searchUnitId }).sort({ order: 1 });
+  const lessons = await Lesson.find({ unit_id: searchUnitId })
+    .populate('level_id', 'level_name description order')
+    .sort({ order: 1 });
 
   sendResponse(res, HTTP_STATUS.OK, 'Lessons fetched successfully', {
     lessons,
@@ -144,7 +165,17 @@ export const getLessonsByUnit = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const createLesson = asyncHandler(async (req, res) => {
-  const { unit_id, title, slug, description, order, status, estimated_minutes, xp } = req.body;
+  const { level_id, levelId, unit_id, title, slug, description, order, status, estimated_minutes, xp } = req.body;
+  const targetLevelId = level_id || levelId;
+
+  if (!targetLevelId || !mongoose.isValidObjectId(targetLevelId)) {
+    throw new AppError('Invalid Level ID', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const levelExists = await Level.findById(targetLevelId);
+  if (!levelExists) {
+    throw new AppError('Level not found', HTTP_STATUS.NOT_FOUND);
+  }
 
   if (!unit_id || !mongoose.isValidObjectId(unit_id)) {
     throw new AppError('Valid unit_id is required', HTTP_STATUS.BAD_REQUEST);
@@ -160,6 +191,7 @@ export const createLesson = asyncHandler(async (req, res) => {
   }
 
   const lesson = await Lesson.create({
+    level_id: targetLevelId,
     unit_id,
     title: title.trim(),
     slug: slug ? slug.trim().toLowerCase() : title.trim().toLowerCase().replace(/\s+/g, '-'),
@@ -170,7 +202,9 @@ export const createLesson = asyncHandler(async (req, res) => {
     xp: xp || 20,
   });
 
-  const populatedLesson = await Lesson.findById(lesson._id).populate('unit_id', 'title slug');
+  const populatedLesson = await Lesson.findById(lesson._id)
+    .populate('level_id', 'level_name description order')
+    .populate('unit_id', 'title slug');
 
   sendResponse(res, HTTP_STATUS.CREATED, 'Lesson created successfully', {
     lesson: populatedLesson,
@@ -189,12 +223,38 @@ export const updateLesson = asyncHandler(async (req, res) => {
     throw new AppError('Invalid Lesson ID', HTTP_STATUS.BAD_REQUEST);
   }
 
+  const targetLevelId = req.body.level_id || req.body.levelId;
+  if (targetLevelId !== undefined) {
+    if (!targetLevelId || !mongoose.isValidObjectId(targetLevelId)) {
+      throw new AppError('Invalid Level ID', HTTP_STATUS.BAD_REQUEST);
+    }
+    const levelExists = await Level.findById(targetLevelId);
+    if (!levelExists) {
+      throw new AppError('Level not found', HTTP_STATUS.NOT_FOUND);
+    }
+  }
+
+  if (req.body.unit_id) {
+    if (!mongoose.isValidObjectId(req.body.unit_id)) {
+      throw new AppError('Valid unit_id is required', HTTP_STATUS.BAD_REQUEST);
+    }
+    const unitExists = await Unit.findById(req.body.unit_id);
+    if (!unitExists) {
+      throw new AppError('Unit not found', HTTP_STATUS.NOT_FOUND);
+    }
+  }
+
   const updateData = { ...req.body };
+  if (targetLevelId) {
+    updateData.level_id = targetLevelId;
+  }
 
   const lesson = await Lesson.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
-  }).populate('unit_id', 'title slug');
+  })
+    .populate('level_id', 'level_name description order')
+    .populate('unit_id', 'title slug');
 
   if (!lesson) {
     throw new AppError('Lesson not found', HTTP_STATUS.NOT_FOUND);

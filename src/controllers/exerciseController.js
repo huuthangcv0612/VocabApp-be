@@ -17,9 +17,10 @@ export const getAllExercises = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.lesson_id || req.query.lessonId) {
     const lessonId = req.query.lesson_id || req.query.lessonId;
-    if (mongoose.isValidObjectId(lessonId)) {
-      filter.lesson_id = lessonId;
+    if (!mongoose.isValidObjectId(lessonId)) {
+      throw new AppError('Invalid Lesson ID', HTTP_STATUS.BAD_REQUEST);
     }
+    filter.lesson_id = lessonId;
   }
 
   if (req.query.type) {

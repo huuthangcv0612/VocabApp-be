@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
 import UserLektionProgress from '../models/UserLektionProgress.js';
+import UserLessonProgress from '../models/UserLessonProgress.js';
+import UserExerciseProgress from '../models/UserExerciseProgress.js';
 import UserVocabularyProgress from '../models/UserVocabularyProgress.js';
 import Lektion from '../models/Lektion.js';
+import Lesson from '../models/Lesson.js';
+import Exercise from '../models/Exercise.js';
 import Vocabulary from '../models/Vocabulary.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
@@ -16,17 +20,17 @@ import { HTTP_STATUS } from '../utils/constants.js';
 export const getUserProgressOverview = asyncHandler(async (req, res) => {
   const userId = req.user.id || req.user._id;
 
-  const lektionProgresses = await UserLektionProgress.find({ user_id: userId })
+  const lessonProgresses = await UserLessonProgress.find({ user_id: userId })
     .populate({
-      path: 'lektion_id',
-      select: 'lektion_name level_id topic_id order',
+      path: 'lesson_id',
+      select: 'title level_id unit_id order xp estimated_minutes',
       populate: [
         { path: 'level_id', select: 'level_name order' },
-        { path: 'topic_id', select: 'name topic_name icon order' },
+        { path: 'unit_id', select: 'title topic_id order' },
       ],
     });
 
-  const completedLektionsCount = await UserLektionProgress.countDocuments({
+  const completedLessonsCount = await UserLessonProgress.countDocuments({
     user_id: userId,
     status: 'completed',
   });
@@ -37,16 +41,256 @@ export const getUserProgressOverview = asyncHandler(async (req, res) => {
   });
 
   sendResponse(res, HTTP_STATUS.OK, 'User progress fetched successfully', {
-    lektionProgresses,
+    lessonProgresses,
     stats: {
-      completedLektionsCount,
+      completedLessonsCount,
       totalLearnedWordsCount,
     },
   });
 });
 
 /**
- * @desc    Get progress for a specific lektion
+ * @desc    Get tracking progress for a specific lesson
+ * @route   GET /api/progress/lessons/:lessonId
+ * @access  Private
+ */
+export const getLessonProgress = asyncHandler(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const { lessonId } = req.params;
+
+  if (!mongoose.isValidObjectId(lessonId)) {
+    throw new AppError('Invalid Lesson ID', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  let lessonProgress = await UserLessonProgress.findOne({
+    user_id: userId,
+    lesson_id: lessonId,
+  });
+
+  const exerciseProgresses = await UserExerciseProgress.find({
+    user_id: userId,
+    lesson_id: lessonId,
+  }).populate('exercise_id');
+
+  if (!lessonProgress) {
+    lessonProgress = {
+      user_id: userId,
+      lesson_id: lessonId,
+      status: 'not_started',
+      progress: 0,
+      xp_earned: 0,
+      started_at: null,
+      completed_at: null,
+    };
+  }
+
+  sendResponse(res, HTTP_STATUS.OK, 'Lesson progress fetched successfully', {
+    lessonProgress,
+    exerciseProgresses,
+  });
+});
+
+/**
+ * @desc    Start learning a lesson
+ * @route   POST /api/progress/lessons/:lessonId/start
+ * @access  Private
+ */
+export const startLessonProgress = asyncHandler(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const { lessonId } = req.params;
+
+  if (!mongoose.isValidObjectId(lessonId)) {
+    throw new AppError('Invalid Lesson ID', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const lesson = await Lesson.findById(lessonId);
+  if (!lesson) {
+    throw new AppError('Lesson not found', HTTP_STATUS.NOT_FOUND);
+  }
+
+  let lessonProgress = await UserLessonProgress.findOne({
+    user_id: userId,
+    lesson_id: lessonId,
+  });
+
+  if (!lessonProgress) {
+    lessonProgress = await UserLessonProgress.create({
+      user_id: userId,
+      lesson_id: lessonId,
+      status: 'in_progress',
+      progress: 0,
+      started_at: new Date(),
+    });
+  }
+
+  sendResponse(res, HTTP_STATUS.OK, 'Lesson learning started', {
+    lessonProgress,
+  });
+});
+
+/**
+ * @desc    Submit an exercise answer and update lesson progress
+ * @route   POST /api/progress/lessons/:lessonId/submit-exercise
+ * @access  Private
+ */
+export const submitLessonExercise = asyncHandler(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const { lessonId } = req.params;
+  const { exercise_id, exerciseId, answer } = req.body;
+  const targetExerciseId = exercise_id || exerciseId;
+
+  if (!mongoose.isValidObjectId(lessonId) || !mongoose.isValidObjectId(targetExerciseId)) {
+    throw new AppError('Invalid Lesson ID or Exercise ID', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const exercise = await Exercise.findOne({ _id: targetExerciseId, lesson_id: lessonId });
+  if (!exercise) {
+    throw new AppError('Exercise not found for this lesson', HTTP_STATUS.NOT_FOUND);
+  }
+
+  // Grade answer
+  let isCorrect = false;
+  const expectedAnswer = exercise.answer;
+  if (expectedAnswer && typeof expectedAnswer === 'object') {
+    if (expectedAnswer.value !== undefined) {
+      if (typeof answer === 'string' && typeof expectedAnswer.value === 'string') {
+        isCorrect = answer.trim().toLowerCase() === expectedAnswer.value.trim().toLowerCase();
+      } else {
+        isCorrect = JSON.stringify(answer) === JSON.stringify(expectedAnswer.value);
+      }
+    } else {
+      isCorrect = JSON.stringify(answer) === JSON.stringify(expectedAnswer);
+    }
+  } else if (expectedAnswer !== undefined) {
+    isCorrect = String(answer).trim().toLowerCase() === String(expectedAnswer).trim().toLowerCase();
+  }
+
+  const xpEarned = isCorrect ? exercise.xp || 2 : 0;
+
+  // 1. Upsert UserExerciseProgress
+  let exProgress = await UserExerciseProgress.findOne({
+    user_id: userId,
+    exercise_id: targetExerciseId,
+  });
+
+  if (!exProgress) {
+    exProgress = await UserExerciseProgress.create({
+      user_id: userId,
+      exercise_id: targetExerciseId,
+      lesson_id: lessonId,
+      is_correct: isCorrect,
+      attempts: 1,
+    });
+  } else {
+    exProgress.is_correct = isCorrect;
+    exProgress.attempts += 1;
+    await exProgress.save();
+  }
+
+  // 2. Recalculate UserLessonProgress
+  const totalExercises = await Exercise.countDocuments({ lesson_id: lessonId });
+  const correctExercisesCount = await UserExerciseProgress.countDocuments({
+    user_id: userId,
+    lesson_id: lessonId,
+    is_correct: true,
+  });
+
+  const percentage = totalExercises > 0 ? Math.min(100, Math.round((correctExercisesCount / totalExercises) * 100)) : 100;
+
+  let lessonProgress = await UserLessonProgress.findOne({
+    user_id: userId,
+    lesson_id: lessonId,
+  });
+
+  if (!lessonProgress) {
+    lessonProgress = new UserLessonProgress({
+      user_id: userId,
+      lesson_id: lessonId,
+      status: percentage >= 100 ? 'completed' : 'in_progress',
+      progress: percentage,
+      xp_earned: isCorrect ? xpEarned : 0,
+      started_at: new Date(),
+      completed_at: percentage >= 100 ? new Date() : null,
+    });
+  } else {
+    lessonProgress.progress = percentage;
+    if (isCorrect) {
+      lessonProgress.xp_earned += xpEarned;
+    }
+    if (percentage >= 100) {
+      lessonProgress.status = 'completed';
+      if (!lessonProgress.completed_at) {
+        lessonProgress.completed_at = new Date();
+      }
+    } else {
+      lessonProgress.status = 'in_progress';
+    }
+  }
+
+  await lessonProgress.save();
+
+  sendResponse(res, HTTP_STATUS.OK, 'Exercise answer evaluated and progress updated', {
+    is_correct: isCorrect,
+    xp_earned: xpEarned,
+    exerciseProgress: exProgress,
+    lessonProgress,
+  });
+});
+
+/**
+ * @desc    Mark a lesson as completed and fetch next lesson
+ * @route   POST /api/progress/lessons/:lessonId/complete
+ * @access  Private
+ */
+export const completeLessonProgress = asyncHandler(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const { lessonId } = req.params;
+
+  if (!mongoose.isValidObjectId(lessonId)) {
+    throw new AppError('Invalid Lesson ID', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const lesson = await Lesson.findById(lessonId);
+  if (!lesson) {
+    throw new AppError('Lesson not found', HTTP_STATUS.NOT_FOUND);
+  }
+
+  let lessonProgress = await UserLessonProgress.findOne({
+    user_id: userId,
+    lesson_id: lessonId,
+  });
+
+  if (!lessonProgress) {
+    lessonProgress = new UserLessonProgress({
+      user_id: userId,
+      lesson_id: lessonId,
+    });
+  }
+
+  lessonProgress.status = 'completed';
+  lessonProgress.progress = 100;
+  if (!lessonProgress.started_at) lessonProgress.started_at = new Date();
+  lessonProgress.completed_at = new Date();
+  lessonProgress.xp_earned = lessonProgress.xp_earned || lesson.xp || 20;
+
+  await lessonProgress.save();
+
+  // Find next lesson in the same level
+  const nextLesson = await Lesson.findOne({
+    level_id: lesson.level_id,
+    order: { $gt: lesson.order },
+  }).sort({ order: 1 });
+
+  sendResponse(res, HTTP_STATUS.OK, 'Lesson marked as completed', {
+    lessonProgress,
+    nextLesson: nextLesson
+      ? { _id: nextLesson._id, title: nextLesson.title, order: nextLesson.order, level_id: nextLesson.level_id }
+      : null,
+  });
+});
+
+/**
+ * @desc    Get progress for a specific lektion (Legacy compatibility)
  * @route   GET /api/progress/lektion/:lektionId
  * @access  Private
  */
@@ -86,7 +330,7 @@ export const getLektionProgress = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Mark a vocabulary as learned in a lektion
+ * @desc    Mark a vocabulary as learned in a lektion (Legacy compatibility)
  * @route   POST /api/progress/lektion/:lektionId/learn-word
  * @access  Private
  */
@@ -189,7 +433,7 @@ export const markWordLearned = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Mark lektion as completed (Step 7 flow: completed -> unlock next Lektion)
+ * @desc    Mark lektion as completed (Legacy compatibility)
  * @route   POST /api/progress/lektion/:lektionId/complete
  * @access  Private
  */
@@ -263,6 +507,10 @@ export const completeLektion = asyncHandler(async (req, res) => {
 
 export default {
   getUserProgressOverview,
+  getLessonProgress,
+  startLessonProgress,
+  submitLessonExercise,
+  completeLessonProgress,
   getLektionProgress,
   markWordLearned,
   completeLektion,

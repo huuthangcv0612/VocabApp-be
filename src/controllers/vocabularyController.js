@@ -18,15 +18,16 @@ export const getAllVocabularies = asyncHandler(async (req, res, next) => {
   );
   const skip = (page - 1) * limit;
 
-  const { lektionId, difficultyLevel, type, search } = req.query;
+  const { level_id, levelId, difficultyLevel, type, search } = req.query;
 
   const filter = {};
 
-  // Filter by lektionId
-  if (lektionId && String(lektionId).trim() !== '') {
-    const cleanLektionId = String(lektionId).trim();
-    if (mongoose.isValidObjectId(cleanLektionId)) {
-      filter.lektionId = cleanLektionId;
+  // Filter by level_id
+  const targetLevelId = level_id || levelId;
+  if (targetLevelId && String(targetLevelId).trim() !== '') {
+    const cleanLevelId = String(targetLevelId).trim();
+    if (mongoose.isValidObjectId(cleanLevelId)) {
+      filter.level_id = cleanLevelId;
     }
   }
 
@@ -54,7 +55,7 @@ export const getAllVocabularies = asyncHandler(async (req, res, next) => {
     .skip(skip)
     .limit(limit)
     .populate('createdBy', 'name email')
-    .populate('lektionId', 'title level')
+    .populate('level_id', 'level_name description order')
     .sort({ createdAt: -1 });
 
   const total = await Vocabulary.countDocuments(filter);
@@ -89,7 +90,7 @@ export const getVocabularyById = asyncHandler(async (req, res, next) => {
 
   const vocabulary = await Vocabulary.findById(id)
     .populate('createdBy', 'name email')
-    .populate('lektionId', 'title level');
+    .populate('level_id', 'level_name description order');
 
   if (!vocabulary) {
     throw new AppError(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
@@ -120,7 +121,8 @@ export const createVocabulary = asyncHandler(async (req, res, next) => {
     translation,
     audio,
     image,
-    lektionId,
+    level_id,
+    levelId,
     difficultyLevel,
   } = req.body;
 
@@ -135,14 +137,14 @@ export const createVocabulary = asyncHandler(async (req, res, next) => {
     translation: translation || null,
     audio: audio || null,
     image: image || null,
-    lektionId: lektionId || null,
+    level_id: level_id || levelId || null,
     difficultyLevel: difficultyLevel || 'A1',
     createdBy: req.user.id,
   });
 
   const populatedVocab = await Vocabulary.findById(vocabulary._id)
     .populate('createdBy', 'name email')
-    .populate('lektionId', 'title level');
+    .populate('level_id', 'level_name description order');
 
   sendResponse(
     res,
@@ -153,7 +155,7 @@ export const createVocabulary = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Update vocabulary by ID (Partial & Full Update without losing existing fields like lektionId)
+ * @desc    Update vocabulary by ID (Partial & Full Update without losing existing fields)
  * @route   PUT /api/vocabularies/:id
  * @access  Private/Admin
  */
@@ -182,7 +184,7 @@ export const updateVocabulary = asyncHandler(async (req, res, next) => {
     'translation',
     'audio',
     'image',
-    'lektionId',
+    'level_id',
     'difficultyLevel',
   ];
 
@@ -191,6 +193,10 @@ export const updateVocabulary = asyncHandler(async (req, res, next) => {
       updateData[field] = req.body[field];
     }
   });
+
+  if (req.body.levelId && !updateData.level_id) {
+    updateData.level_id = req.body.levelId;
+  }
 
   // Atomic update using $set to retain fields that were not passed in the request body
   const updatedVocabulary = await Vocabulary.findByIdAndUpdate(
@@ -202,7 +208,7 @@ export const updateVocabulary = asyncHandler(async (req, res, next) => {
     }
   )
     .populate('createdBy', 'name email')
-    .populate('lektionId', 'title level');
+    .populate('level_id', 'level_name description order');
 
   sendResponse(
     res,
@@ -261,7 +267,7 @@ export const searchVocabularies = asyncHandler(async (req, res, next) => {
     ],
   })
     .limit(20)
-    .populate('lektionId', 'title level');
+    .populate('level_id', 'level_name description order');
 
   sendResponse(
     res,
@@ -272,7 +278,7 @@ export const searchVocabularies = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Get vocabularies by Lektion ID (Step 6 of curriculum flow)
+ * @desc    Get vocabularies by Lektion ID (legacy compatibility endpoint)
  * @route   GET /api/vocabularies/lektion/:lektionId
  * @access  Public / User
  */
@@ -284,13 +290,13 @@ export const getVocabulariesByLektion = asyncHandler(async (req, res, next) => {
   }
 
   const vocabularies = await Vocabulary.find({
-    $or: [{ lektionId }, { lektion_id: lektionId }],
-  }).populate('lektionId', 'lektion_name order');
+    $or: [{ level_id: lektionId }],
+  }).populate('level_id', 'level_name order');
 
   sendResponse(
     res,
     HTTP_STATUS.OK,
-    'Vocabularies for lektion fetched successfully',
+    'Vocabularies fetched successfully',
     {
       vocabularies,
       count: vocabularies.length,

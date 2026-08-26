@@ -79,15 +79,11 @@ const vocabularySchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
-    lektionId: {
+    level_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Lektion',
+      ref: 'Level',
       default: null,
-    },
-    lektion_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Lektion',
-      default: null,
+      index: true,
     },
     difficultyLevel: {
       type: String,
@@ -119,12 +115,6 @@ const vocabularySchema = new mongoose.Schema(
 
 // Pre-save hook to synchronize key field aliases
 vocabularySchema.pre('save', function () {
-  if (this.lektion_id && !this.lektionId) {
-    this.lektionId = this.lektion_id;
-  } else if (this.lektionId && !this.lektion_id) {
-    this.lektion_id = this.lektionId;
-  }
-
   if (this.part_of_speech && !this.type) {
     this.type = this.part_of_speech;
   } else if (this.type && !this.part_of_speech) {
@@ -183,8 +173,7 @@ vocabularySchema.virtual('exampleSentence').get(function () {
 // Indexing for high performance search
 vocabularySchema.index({ word: 1 });
 vocabularySchema.index({ meaning: 1 });
-vocabularySchema.index({ lektionId: 1 });
-vocabularySchema.index({ lektion_id: 1 });
+vocabularySchema.index({ level_id: 1 });
 vocabularySchema.index({ difficultyLevel: 1 });
 vocabularySchema.index({ level: 1 });
 
