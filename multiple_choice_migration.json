@@ -1,0 +1,1016 @@
+[
+  {
+    "_id": "6b8994bfea32640ade8127b9",
+    "before": {
+      "options": [
+        "die Tür, -en",
+        "der Stuhl, -ü,e",
+        "wohnen",
+        "das Bad, -ä,er"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Tür, -en",
+        "der Stuhl, -ü,e",
+        "wohnen",
+        "das Bad, -ä,er"
+      ],
+      "answer": {
+        "correct_option": "wohnen",
+        "explanation": "wohnen = sinh sống, ở"
+      }
+    }
+  },
+  {
+    "_id": "8fcc561e2b0d0c9479401b12",
+    "before": {
+      "options": [
+        "die Krankheit, -en",
+        "die Apotheke, -n",
+        "das Krankenhaus",
+        "der Schmerz, -en"
+      ],
+      "answer": {
+        "correct_option_index": 2
+      }
+    },
+    "after": {
+      "options": [
+        "die Krankheit, -en",
+        "die Apotheke, -n",
+        "das Krankenhaus",
+        "der Schmerz, -en"
+      ],
+      "answer": {
+        "correct_option": "das Krankenhaus",
+        "explanation": "das Krankenhaus = Bệnh viện"
+      }
+    }
+  },
+  {
+    "_id": "142536e10cb04e6fc6015503",
+    "before": {
+      "options": [
+        "das Auge, -n",
+        "die Hand, -ä,e",
+        "der Arm, -e",
+        "der Fuß, - ü,e"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Auge, -n",
+        "die Hand, -ä,e",
+        "der Arm, -e",
+        "der Fuß, - ü,e"
+      ],
+      "answer": {
+        "correct_option": "das Auge, -n",
+        "explanation": "das Auge, -n = mắt"
+      }
+    }
+  },
+  {
+    "_id": "a7ac6cc76565cb43a6d5b1b6",
+    "before": {
+      "options": [
+        "der Sommer",
+        "der Winter",
+        "der Herbst",
+        "der Frühling"
+      ],
+      "answer": {
+        "correct_option_index": 2
+      }
+    },
+    "after": {
+      "options": [
+        "der Sommer",
+        "der Winter",
+        "der Herbst",
+        "der Frühling"
+      ],
+      "answer": {
+        "correct_option": "der Frühling",
+        "explanation": "der Frühling = Mùa xuân"
+      }
+    }
+  },
+  {
+    "_id": "1684695fc3d100b4a9d440ac",
+    "before": {
+      "options": [
+        "die Bäckerei",
+        "kaufen",
+        "der Einkaufswagen",
+        "der Preis"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Bäckerei",
+        "kaufen",
+        "der Einkaufswagen",
+        "der Preis"
+      ],
+      "answer": {
+        "correct_option": "die Bäckerei",
+        "explanation": "die Bäckerei = Tiệm bánh"
+      }
+    }
+  },
+  {
+    "_id": "e00f99d70bfeec9393572022",
+    "before": {
+      "options": [
+        "der Euro",
+        "teuer",
+        "die Bäckerei",
+        "der Markt"
+      ],
+      "answer": {
+        "correct_option_index": 2
+      }
+    },
+    "after": {
+      "options": [
+        "der Euro",
+        "teuer",
+        "die Bäckerei",
+        "der Markt"
+      ],
+      "answer": {
+        "correct_option": "die Bäckerei",
+        "explanation": "die Bäckerei = Tiệm bánh"
+      }
+    }
+  },
+  {
+    "_id": "309ab75608719dd533faedc8",
+    "before": {
+      "options": [
+        "der Schmerz, -en",
+        "die Krankheit, -en",
+        "der Arzt",
+        "krank"
+      ],
+      "answer": {
+        "correct_option_index": 2
+      }
+    },
+    "after": {
+      "options": [
+        "der Schmerz, -en",
+        "die Krankheit, -en",
+        "der Arzt",
+        "krank"
+      ],
+      "answer": {
+        "correct_option": "der Arzt",
+        "explanation": "der Arzt = Bác sĩ nam"
+      }
+    }
+  },
+  {
+    "_id": "87dbff740936f627f4ea5be1",
+    "before": {
+      "options": [
+        "das Auge, -n",
+        "die Nase, -n",
+        "der Körper, -",
+        "das Bein, -e"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Auge, -n",
+        "die Nase, -n",
+        "der Körper, -",
+        "das Bein, -e"
+      ],
+      "answer": {
+        "correct_option": "der Körper, -",
+        "explanation": "der Körper, - = cơ thể"
+      }
+    }
+  },
+  {
+    "_id": "06744d80db1c33f5a9ae0fec",
+    "before": {
+      "options": [
+        "die Packung",
+        "die Bäckerei",
+        "kaufen",
+        "der Preis"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Packung",
+        "die Bäckerei",
+        "kaufen",
+        "der Preis"
+      ],
+      "answer": {
+        "correct_option": "der Preis",
+        "explanation": "der Preis = Giá tiền"
+      }
+    }
+  },
+  {
+    "_id": "c7ac6257f04678f146bee3f1",
+    "before": {
+      "options": [
+        "das Zimmer",
+        "das Haus",
+        "wohnen",
+        "das Bad, -ä,er"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Zimmer",
+        "das Haus",
+        "wohnen",
+        "das Bad, -ä,er"
+      ],
+      "answer": {
+        "correct_option": "das Zimmer",
+        "explanation": "das Zimmer = Phòng"
+      }
+    }
+  },
+  {
+    "_id": "b63f2ae718f8d1898b47616b",
+    "before": {
+      "options": [
+        "das Bad, -ä,er",
+        "die Tür, -en",
+        "der Stuhl, -ü,e",
+        "die Wohnung, -en"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Bad, -ä,er",
+        "die Tür, -en",
+        "der Stuhl, -ü,e",
+        "die Wohnung, -en"
+      ],
+      "answer": {
+        "correct_option": "die Wohnung, -en",
+        "explanation": "die Wohnung, -en = chung cư"
+      }
+    }
+  },
+  {
+    "_id": "d3e579f232e7e2be6850d5f7",
+    "before": {
+      "options": [
+        "gesund",
+        "der Schmerz, -en",
+        "der Arzt",
+        "der Krankenpfleger"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "gesund",
+        "der Schmerz, -en",
+        "der Arzt",
+        "der Krankenpfleger"
+      ],
+      "answer": {
+        "correct_option": "der Schmerz, -en",
+        "explanation": "der Schmerz, -en = cơn đau"
+      }
+    }
+  },
+  {
+    "_id": "8caed173fb8795b3d6846b50",
+    "before": {
+      "options": [
+        "die Bäckerei",
+        "kaufen",
+        "teuer",
+        "die Packung"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Bäckerei",
+        "kaufen",
+        "teuer",
+        "die Packung"
+      ],
+      "answer": {
+        "correct_option": "teuer",
+        "explanation": "teuer = Đắt"
+      }
+    }
+  },
+  {
+    "_id": "6ebe2db535c0f7478e10d5c6",
+    "before": {
+      "options": [
+        "der Einkaufswagen",
+        "teuer",
+        "die Packung",
+        "die Bäckerei"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Einkaufswagen",
+        "teuer",
+        "die Packung",
+        "die Bäckerei"
+      ],
+      "answer": {
+        "correct_option": "der Einkaufswagen",
+        "explanation": "der Einkaufswagen = Xe đẩy mua hàng"
+      }
+    }
+  },
+  {
+    "_id": "7b73d25e01d85f85eddaa424",
+    "before": {
+      "options": [
+        "wohnen",
+        "das Bad, -ä,er",
+        "die Tür, -en",
+        "das Haus"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "wohnen",
+        "das Bad, -ä,er",
+        "die Tür, -en",
+        "das Haus"
+      ],
+      "answer": {
+        "correct_option": "das Haus",
+        "explanation": "das Haus = Ngôi nhà"
+      }
+    }
+  },
+  {
+    "_id": "751468af3f7ed18f279e59f5",
+    "before": {
+      "options": [
+        "das Einzelzimmer, -",
+        "das Bad, -ä,er",
+        "die Tür, -en",
+        "der Stuhl, -ü,e"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Einzelzimmer, -",
+        "das Bad, -ä,er",
+        "die Tür, -en",
+        "der Stuhl, -ü,e"
+      ],
+      "answer": {
+        "correct_option": "das Bad, -ä,er",
+        "explanation": "das Bad, -ä,er = nhà tắm"
+      }
+    }
+  },
+  {
+    "_id": "3585b6774e77879c8e81ea6b",
+    "before": {
+      "options": [
+        "die Tür, -en",
+        "der Stuhl, -ü,e",
+        "das Einzelzimmer, -",
+        "die Wohnung, -en"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Tür, -en",
+        "der Stuhl, -ü,e",
+        "das Einzelzimmer, -",
+        "die Wohnung, -en"
+      ],
+      "answer": {
+        "correct_option": "die Tür, -en",
+        "explanation": "die Tür, -en = cửa"
+      }
+    }
+  },
+  {
+    "_id": "b4ca22cbe709d52b0e0959fa",
+    "before": {
+      "options": [
+        "der Arzt",
+        "der Krankenpfleger",
+        "krank",
+        "das Krankenhaus"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Arzt",
+        "der Krankenpfleger",
+        "krank",
+        "das Krankenhaus"
+      ],
+      "answer": {
+        "correct_option": "krank",
+        "explanation": "krank = Ốm"
+      }
+    }
+  },
+  {
+    "_id": "1dbd4e7a7f92876b032abe90",
+    "before": {
+      "options": [
+        "die Krankheit, -en",
+        "der Krankenpfleger",
+        "gesund",
+        "krank"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Krankheit, -en",
+        "der Krankenpfleger",
+        "gesund",
+        "krank"
+      ],
+      "answer": {
+        "correct_option": "die Krankheit, -en",
+        "explanation": "die Krankheit, -en = Bệnh"
+      }
+    }
+  },
+  {
+    "_id": "ad8ecba802d5df0d87d3e802",
+    "before": {
+      "options": [
+        "teuer",
+        "die Packung",
+        "die Bäckerei",
+        "der Euro"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "teuer",
+        "die Packung",
+        "die Bäckerei",
+        "der Euro"
+      ],
+      "answer": {
+        "correct_option": "der Euro",
+        "explanation": "der Euro = Tiền Euro"
+      }
+    }
+  },
+  {
+    "_id": "1a2e84aba8fd56e9438d0412",
+    "before": {
+      "options": [
+        "der Test",
+        "der Kurs",
+        "die Universität",
+        "die Schule"
+      ],
+      "answer": {
+        "correct_option_index": 2
+      }
+    },
+    "after": {
+      "options": [
+        "der Test",
+        "der Kurs",
+        "die Universität",
+        "die Schule"
+      ],
+      "answer": {
+        "correct_option": "die Universität",
+        "explanation": "die Universität = Trường đại học"
+      }
+    }
+  },
+  {
+    "_id": "b189bffb55a93023f8c213e5",
+    "before": {
+      "options": [
+        "der Kopf, -ö,e",
+        "die Hand, -ä,e",
+        "der Fuß, - ü,e",
+        "der Körper, -"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Kopf, -ö,e",
+        "die Hand, -ä,e",
+        "der Fuß, - ü,e",
+        "der Körper, -"
+      ],
+      "answer": {
+        "correct_option": "der Fuß, - ü,e",
+        "explanation": "der Fuß, - ü,e = bàn chân"
+      }
+    }
+  },
+  {
+    "_id": "3189ccef93d6dd7ef5b64af3",
+    "before": {
+      "options": [
+        "der Arm, -e",
+        "der Fuß, - ü,e",
+        "das Bein, -e",
+        "die Nase, -n"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Arm, -e",
+        "der Fuß, - ü,e",
+        "das Bein, -e",
+        "die Nase, -n"
+      ],
+      "answer": {
+        "correct_option": "die Nase, -n",
+        "explanation": "die Nase, -n = mũi"
+      }
+    }
+  },
+  {
+    "_id": "b0a833108cfee6ec3f37699e",
+    "before": {
+      "options": [
+        "der Sommer",
+        "der Winter",
+        "der Frühling",
+        "der Herbst"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Sommer",
+        "der Winter",
+        "der Frühling",
+        "der Herbst"
+      ],
+      "answer": {
+        "correct_option": "der Sommer",
+        "explanation": "der Sommer = Mùa hè"
+      }
+    }
+  },
+  {
+    "_id": "2dd857232a61c798d6e5f88d",
+    "before": {
+      "options": [
+        "der Einkaufswagen",
+        "der Preis",
+        "der Markt",
+        "kaufen"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Einkaufswagen",
+        "der Preis",
+        "der Markt",
+        "kaufen"
+      ],
+      "answer": {
+        "correct_option": "der Markt",
+        "explanation": "der Markt = Chợ"
+      }
+    }
+  },
+  {
+    "_id": "1957ceee4e6e8d24ee0aa6bd",
+    "before": {
+      "options": [
+        "das Haus",
+        "wohnen",
+        "die Tür, -en",
+        "das Zimmer"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Haus",
+        "wohnen",
+        "die Tür, -en",
+        "das Zimmer"
+      ],
+      "answer": {
+        "correct_option": "die Tür, -en",
+        "explanation": "die Tür, -en = cửa"
+      }
+    }
+  },
+  {
+    "_id": "1b1d0b812827e079b68aac65",
+    "before": {
+      "options": [
+        "gesund",
+        "krank",
+        "der Schmerz, -en",
+        "die Apotheke, -n"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "gesund",
+        "krank",
+        "der Schmerz, -en",
+        "die Apotheke, -n"
+      ],
+      "answer": {
+        "correct_option": "die Apotheke, -n",
+        "explanation": "die Apotheke, -n = tiệm thuốc"
+      }
+    }
+  },
+  {
+    "_id": "126f8d775889bd506be9057e",
+    "before": {
+      "options": [
+        "der Arm, -e",
+        "das Bein, -e",
+        "der Kopf, -ö,e",
+        "die Hand, -ä,e"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Arm, -e",
+        "das Bein, -e",
+        "der Kopf, -ö,e",
+        "die Hand, -ä,e"
+      ],
+      "answer": {
+        "correct_option": "das Bein, -e",
+        "explanation": "das Bein, -e = chân"
+      }
+    }
+  },
+  {
+    "_id": "ccd2e04be20696168e3d9a8c",
+    "before": {
+      "options": [
+        "die Hand, -ä,e",
+        "das Auge, -n",
+        "der Körper, -",
+        "der Kopf, -ö,e"
+      ],
+      "answer": {
+        "correct_option_index": 1
+      }
+    },
+    "after": {
+      "options": [
+        "die Hand, -ä,e",
+        "das Auge, -n",
+        "der Körper, -",
+        "der Kopf, -ö,e"
+      ],
+      "answer": {
+        "correct_option": "das Auge, -n",
+        "explanation": "das Auge, -n = mắt"
+      }
+    }
+  },
+  {
+    "_id": "a44a353ceb7048aebc83d061",
+    "before": {
+      "options": [
+        "der Frühling",
+        "der Herbst",
+        "der Regen (Sg.)",
+        "der Winter"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Frühling",
+        "der Herbst",
+        "der Regen (Sg.)",
+        "der Winter"
+      ],
+      "answer": {
+        "correct_option": "der Winter",
+        "explanation": "der Winter = Mùa đông"
+      }
+    }
+  },
+  {
+    "_id": "a06c469b0b85a7dedf941b2b",
+    "before": {
+      "options": [
+        "die Packung",
+        "kaufen",
+        "der Euro",
+        "teuer"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Packung",
+        "kaufen",
+        "der Euro",
+        "teuer"
+      ],
+      "answer": {
+        "correct_option": "kaufen",
+        "explanation": "kaufen = Mua"
+      }
+    }
+  },
+  {
+    "_id": "52ec8606400898bacb365613",
+    "before": {
+      "options": [
+        "das Bad, -ä,er",
+        "der Stuhl, -ü,e",
+        "das Haus",
+        "wohnen"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Bad, -ä,er",
+        "der Stuhl, -ü,e",
+        "das Haus",
+        "wohnen"
+      ],
+      "answer": {
+        "correct_option": "der Stuhl, -ü,e",
+        "explanation": "der Stuhl, -ü,e = ghế"
+      }
+    }
+  },
+  {
+    "_id": "d6a703f09a94f987b05bfbba",
+    "before": {
+      "options": [
+        "das Einzelzimmer, -",
+        "wohnen",
+        "das Bad, -ä,er",
+        "die Tür, -en"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Einzelzimmer, -",
+        "wohnen",
+        "das Bad, -ä,er",
+        "die Tür, -en"
+      ],
+      "answer": {
+        "correct_option": "das Einzelzimmer, -",
+        "explanation": "das Einzelzimmer, - = phòng đơn (1 giường)"
+      }
+    }
+  },
+  {
+    "_id": "ac0cf9a103d3e11a2b3baf91",
+    "before": {
+      "options": [
+        "der Regen (Sg.)",
+        "die Sonne (Sg.)",
+        "der Frühling",
+        "der Herbst"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Regen (Sg.)",
+        "die Sonne (Sg.)",
+        "der Frühling",
+        "der Herbst"
+      ],
+      "answer": {
+        "correct_option": "der Frühling",
+        "explanation": "der Frühling = Mùa xuân"
+      }
+    }
+  },
+  {
+    "_id": "acc8b961a1594932ba188594",
+    "before": {
+      "options": [
+        "die Wolke, -n",
+        "der Herbst",
+        "der Regen (Sg.)",
+        "die Sonne (Sg.)"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "die Wolke, -n",
+        "der Herbst",
+        "der Regen (Sg.)",
+        "die Sonne (Sg.)"
+      ],
+      "answer": {
+        "correct_option": "der Herbst",
+        "explanation": "der Herbst = Mùa thu"
+      }
+    }
+  },
+  {
+    "_id": "f72adb2e07d86196231bb1b3",
+    "before": {
+      "options": [
+        "das Einzelzimmer, -",
+        "die Wohnung, -en",
+        "das Zimmer",
+        "der Stuhl, -ü,e"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "das Einzelzimmer, -",
+        "die Wohnung, -en",
+        "das Zimmer",
+        "der Stuhl, -ü,e"
+      ],
+      "answer": {
+        "correct_option": "das Zimmer",
+        "explanation": "das Zimmer = Phòng"
+      }
+    }
+  },
+  {
+    "_id": "b8df415fa21f36d23a6bc93d",
+    "before": {
+      "options": [
+        "der Regen (Sg.)",
+        "die Sonne (Sg.)",
+        "die Wolke, -n",
+        "der Wind, -e"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Regen (Sg.)",
+        "die Sonne (Sg.)",
+        "die Wolke, -n",
+        "der Wind, -e"
+      ],
+      "answer": {
+        "correct_option": "der Regen (Sg.)",
+        "explanation": "der Regen (Sg.) = cơn mưa"
+      }
+    }
+  },
+  {
+    "_id": "b47c9f337badfb6429159c8a",
+    "before": {
+      "options": [
+        "der Einkaufswagen",
+        "die Packung",
+        "die Bäckerei",
+        "kaufen"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "der Einkaufswagen",
+        "die Packung",
+        "die Bäckerei",
+        "kaufen"
+      ],
+      "answer": {
+        "correct_option": "die Packung",
+        "explanation": "die Packung = Gói hàng"
+      }
+    }
+  },
+  {
+    "_id": "af34e7f9f66d83e7b4a51953",
+    "before": {
+      "options": [
+        "teuer",
+        "der Einkaufswagen",
+        "der Markt",
+        "der Euro"
+      ],
+      "answer": {
+        "correct_option_index": 0
+      }
+    },
+    "after": {
+      "options": [
+        "teuer",
+        "der Einkaufswagen",
+        "der Markt",
+        "der Euro"
+      ],
+      "answer": {
+        "correct_option": "der Einkaufswagen",
+        "explanation": "der Einkaufswagen = Xe đẩy mua hàng"
+      }
+    }
+  }
+]

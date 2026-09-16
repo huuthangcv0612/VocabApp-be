@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Unit from '../models/Unit.js';
 import Topic from '../models/Topic.js';
 import Lesson from '../models/Lesson.js';
+import Level from '../models/Level.js';
 import UserLessonProgress from '../models/UserLessonProgress.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
@@ -237,10 +238,142 @@ export const deleteUnit = asyncHandler(async (req, res) => {
   sendResponse(res, HTTP_STATUS.OK, 'Unit deleted successfully', { deletedId: id });
 });
 
+/**
+ * @desc    Get units by Level ID with populated lessons and user progression status
+ * @route   GET /api/levels/:levelId/units
+ * @access  Public (with optional user context)
+ */
+export const getUnitsByLevel = asyncHandler(async (req, res) => {
+  const { levelId } = req.params;
+
+  let levelDoc = null;
+  if (mongoose.isValidObjectId(levelId)) {
+    levelDoc = await Level.findById(levelId);
+  }
+  if (!levelDoc) {
+    levelDoc = await Level.findOne({ level_name: levelId });
+  }
+
+  if (!levelDoc) {
+    throw new AppError('Level not found', HTTP_STATUS.NOT_FOUND);
+  }
+
+  // Find topics belonging to this level
+  const topics = await Topic.find({ level_id: levelDoc._id });
+  const topicIds = topics.map((t) => t._id);
+
+  // Find units belonging to these topics or directly matching level_id
+  const filter = {
+    $or: [
+      { topic_id: { $in: topicIds } },
+      { level_id: levelDoc._id },
+    ],
+  };
+
+  if (req.query.status) {
+    filter.status = req.query.status;
+  }
+
+  const units = await Unit.find(filter)
+    .populate('topic_id', 'name topic_name slug icon image_url')
+    .sort({ order: 1 });
+
+  const userId = req.user ? (req.user.id || req.user._id) : null;
+
+  // Batch fetch lessons for all units
+  const unitIds = units.map((u) => u._id);
+  const rawLessons = await Lesson.find({ unit_id: { $in: unitIds } }).sort({ order: 1 });
+
+  // Map lessons by unit_id
+  const lessonsByUnit = new Map();
+  unitIds.forEach((uId) => lessonsByUnit.set(uId.toString(), []));
+  rawLessons.forEach((les) => {
+    const key = les.unit_id.toString();
+    if (!lessonsByUnit.has(key)) {
+      lessonsByUnit.set(key, []);
+    }
+    lessonsByUnit.get(key).push(les);
+  });
+
+  // Fetch progress for authenticated user
+  const progressMap = new Map();
+  if (userId && rawLessons.length > 0) {
+    const lessonIds = rawLessons.map((l) => l._id);
+    const progressList = await UserLessonProgress.find({
+      user_id: userId,
+      lesson_id: { $in: lessonIds },
+    });
+    progressList.forEach((up) => {
+      progressMap.set(up.lesson_id.toString(), up);
+    });
+  }
+
+  // Calculate progression across all lessons in sequential order (Unit.order ASC, Lesson.order ASC)
+  let foundFirstIncomplete = false;
+
+  const unitsWithLessons = units.map((unit) => {
+    const uObj = unit.toObject();
+    const uLessons = lessonsByUnit.get(unit._id.toString()) || [];
+
+    let unitCompletedCount = 0;
+    let unitTotalXp = 0;
+
+    const formattedLessons = uLessons.map((les) => {
+      const lObj = les.toObject();
+      const prog = progressMap.get(les._id.toString());
+      const isCompleted = prog && (prog.status === 'completed' || prog.progress >= 100);
+      const progressPercent = prog ? prog.progress : (isCompleted ? 100 : 0);
+
+      let status = 'locked';
+      if (isCompleted) {
+        status = 'completed';
+        unitCompletedCount++;
+      } else if (!foundFirstIncomplete) {
+        status = 'current';
+        foundFirstIncomplete = true;
+      } else {
+        status = 'locked';
+      }
+
+      const xp = les.xp || 20;
+      unitTotalXp += xp;
+
+      return {
+        ...lObj,
+        status,
+        progressPercentage: progressPercent,
+        xp,
+      };
+    });
+
+    const unitProgressPct = uLessons.length > 0
+      ? Math.round((unitCompletedCount / uLessons.length) * 100)
+      : 0;
+
+    return {
+      ...uObj,
+      lessons: formattedLessons,
+      lesson_count: uLessons.length,
+      completedLessonsCount: unitCompletedCount,
+      totalLessonsCount: uLessons.length,
+      totalXp: unitTotalXp,
+      progressPercentage: unitProgressPct,
+    };
+  });
+
+  sendResponse(res, HTTP_STATUS.OK, 'Units fetched successfully', {
+    level: levelDoc,
+    units: unitsWithLessons,
+    count: unitsWithLessons.length,
+    data: unitsWithLessons,
+  });
+});
+
 export default {
   getAllUnits,
   getUnitById,
   getUnitsByTopic,
+  getUnitsByLevel,
   createUnit,
   updateUnit,
   deleteUnit,

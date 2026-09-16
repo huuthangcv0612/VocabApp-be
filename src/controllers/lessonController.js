@@ -42,12 +42,14 @@ export const getAllLessons = asyncHandler(async (req, res) => {
   }
 
   const lessons = await Lesson.find(filter)
-    .populate('level_id', 'level_name description order')
-    .populate({
-      path: 'unit_id',
-      select: 'title slug topic_id order',
-      populate: { path: 'topic_id', select: 'name topic_name slug' },
-    })
+    .populate([
+      { path: 'level_id', select: 'level_name description order' },
+      {
+        path: 'unit_id',
+        select: 'title slug topic_id order',
+        populate: { path: 'topic_id', select: 'name topic_name slug' },
+      },
+    ])
     .sort({ order: 1 });
 
   sendResponse(res, HTTP_STATUS.OK, 'Lessons fetched successfully', {
@@ -68,22 +70,26 @@ export const getLessonById = asyncHandler(async (req, res) => {
 
   if (mongoose.isValidObjectId(id)) {
     lesson = await Lesson.findById(id)
-      .populate('level_id', 'level_name description order')
-      .populate({
-        path: 'unit_id',
-        select: 'title slug topic_id order',
-        populate: { path: 'topic_id', select: 'name topic_name slug' },
-      });
+      .populate([
+        { path: 'level_id', select: 'level_name description order' },
+        {
+          path: 'unit_id',
+          select: 'title slug topic_id order',
+          populate: { path: 'topic_id', select: 'name topic_name slug' },
+        },
+      ]);
   }
 
   if (!lesson) {
     lesson = await Lesson.findOne({ slug: id })
-      .populate('level_id', 'level_name description order')
-      .populate({
-        path: 'unit_id',
-        select: 'title slug topic_id order',
-        populate: { path: 'topic_id', select: 'name topic_name slug' },
-      });
+      .populate([
+        { path: 'level_id', select: 'level_name description order' },
+        {
+          path: 'unit_id',
+          select: 'title slug topic_id order',
+          populate: { path: 'topic_id', select: 'name topic_name slug' },
+        },
+      ]);
   }
 
   if (!lesson) {

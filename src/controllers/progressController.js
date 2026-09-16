@@ -11,6 +11,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
 import { sendResponse } from '../utils/responseHandler.js';
 import { HTTP_STATUS } from '../utils/constants.js';
+import { evaluateExerciseAnswer } from '../utils/gradingHelper.js';
 
 /**
  * @desc    Get overall user progress across curriculum
@@ -149,21 +150,21 @@ export const submitLessonExercise = asyncHandler(async (req, res) => {
   }
 
   // Grade answer
-  let isCorrect = false;
-  const expectedAnswer = exercise.answer;
-  if (expectedAnswer && typeof expectedAnswer === 'object') {
-    if (expectedAnswer.value !== undefined) {
-      if (typeof answer === 'string' && typeof expectedAnswer.value === 'string') {
-        isCorrect = answer.trim().toLowerCase() === expectedAnswer.value.trim().toLowerCase();
-      } else {
-        isCorrect = JSON.stringify(answer) === JSON.stringify(expectedAnswer.value);
-      }
-    } else {
-      isCorrect = JSON.stringify(answer) === JSON.stringify(expectedAnswer);
-    }
-  } else if (expectedAnswer !== undefined) {
-    isCorrect = String(answer).trim().toLowerCase() === String(expectedAnswer).trim().toLowerCase();
-  }
+  console.log('[DEBUG RUNTIME GRADING - progressController]', {
+    exerciseId: exercise._id,
+    type: exercise.type,
+    submittedAnswer: answer,
+    exerciseAnswer: exercise.answer,
+    correctOption: exercise.answer?.correct_option
+  });
+
+  const isCorrect = evaluateExerciseAnswer(exercise, answer);
+
+  console.log('[DEBUG RUNTIME GRADING - progressController]', {
+    submittedAnswer: answer,
+    correctAnswer: exercise.answer?.correct_option,
+    isCorrect
+  });
 
   const xpEarned = isCorrect ? exercise.xp || 2 : 0;
 
@@ -270,16 +271,47 @@ export const completeLessonProgress = asyncHandler(async (req, res) => {
   lessonProgress.status = 'completed';
   lessonProgress.progress = 100;
   if (!lessonProgress.started_at) lessonProgress.started_at = new Date();
-  lessonProgress.completed_at = new Date();
+  if (!lessonProgress.completed_at) lessonProgress.completed_at = new Date();
   lessonProgress.xp_earned = lessonProgress.xp_earned || lesson.xp || 20;
 
   await lessonProgress.save();
 
-  // Find next lesson in the same level
-  const nextLesson = await Lesson.findOne({
-    level_id: lesson.level_id,
+  // Find next lesson across units in the same level
+  let nextLesson = await Lesson.findOne({
+    unit_id: lesson.unit_id,
     order: { $gt: lesson.order },
   }).sort({ order: 1 });
+
+  if (!nextLesson) {
+    const currentUnit = await Unit.findById(lesson.unit_id);
+    if (currentUnit) {
+      const targetLevelId = lesson.level_id || (currentUnit.topic_id ? currentUnit.topic_id.level_id : null);
+      let nextUnit = null;
+      if (targetLevelId) {
+        const topics = await Topic.find({ level_id: targetLevelId });
+        const topicIds = topics.map((t) => t._id);
+        nextUnit = await Unit.findOne({
+          $or: [{ topic_id: { $in: topicIds } }, { level_id: targetLevelId }],
+          order: { $gt: currentUnit.order },
+        }).sort({ order: 1 });
+      } else {
+        nextUnit = await Unit.findOne({
+          order: { $gt: currentUnit.order },
+        }).sort({ order: 1 });
+      }
+
+      if (nextUnit) {
+        nextLesson = await Lesson.findOne({ unit_id: nextUnit._id }).sort({ order: 1 });
+      }
+    }
+  }
+
+  if (!nextLesson && lesson.level_id) {
+    nextLesson = await Lesson.findOne({
+      level_id: lesson.level_id,
+      order: { $gt: lesson.order },
+    }).sort({ order: 1 });
+  }
 
   sendResponse(res, HTTP_STATUS.OK, 'Lesson marked as completed', {
     lessonProgress,

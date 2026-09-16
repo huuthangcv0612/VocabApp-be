@@ -8,6 +8,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
 import { sendResponse } from '../utils/responseHandler.js';
 import { HTTP_STATUS } from '../utils/constants.js';
+import { evaluateExerciseAnswer } from '../utils/gradingHelper.js';
 
 /**
  * @desc    Get public lesson by ID or slug (STRIPS EXERCISE ANSWERS FOR SECURITY)
@@ -101,23 +102,21 @@ export const submitExerciseAnswer = asyncHandler(async (req, res) => {
     throw new AppError('Exercise not found for this lesson', HTTP_STATUS.NOT_FOUND);
   }
 
-  let isCorrect = false;
-  const expectedAnswer = exercise.answer;
+  console.log('[DEBUG RUNTIME GRADING - publicCurriculumController]', {
+    exerciseId: exercise._id,
+    type: exercise.type,
+    submittedAnswer: answer,
+    exerciseAnswer: exercise.answer,
+    correctOption: exercise.answer?.correct_option
+  });
 
-  // Grade answer according to exercise type structure
-  if (expectedAnswer && typeof expectedAnswer === 'object') {
-    if (expectedAnswer.value !== undefined) {
-      if (typeof answer === 'string' && typeof expectedAnswer.value === 'string') {
-        isCorrect = answer.trim().toLowerCase() === expectedAnswer.value.trim().toLowerCase();
-      } else {
-        isCorrect = JSON.stringify(answer) === JSON.stringify(expectedAnswer.value);
-      }
-    } else {
-      isCorrect = JSON.stringify(answer) === JSON.stringify(expectedAnswer);
-    }
-  } else if (expectedAnswer !== undefined) {
-    isCorrect = String(answer).trim().toLowerCase() === String(expectedAnswer).trim().toLowerCase();
-  }
+  const isCorrect = evaluateExerciseAnswer(exercise, answer);
+
+  console.log('[DEBUG RUNTIME GRADING - publicCurriculumController]', {
+    submittedAnswer: answer,
+    correctAnswer: exercise.answer?.correct_option,
+    isCorrect
+  });
 
   const xpEarned = isCorrect ? exercise.xp || 2 : 0;
   const userId = req.user ? req.user.id || req.user._id : null;

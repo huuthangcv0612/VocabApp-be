@@ -3,6 +3,7 @@ import {
   getAllUnits,
   getUnitById,
   getUnitsByTopic,
+  getUnitsByLevel,
   createUnit,
   updateUnit,
   deleteUnit,
@@ -15,6 +16,7 @@ const router = express.Router();
 // Public / User read endpoints
 router.get('/', optionalAuth, getAllUnits);
 router.get('/topic/:topicId', optionalAuth, getUnitsByTopic);
+router.get('/level/:levelId', optionalAuth, getUnitsByLevel);
 router.get('/:id', optionalAuth, getUnitById);
 
 // Protected Admin routes
