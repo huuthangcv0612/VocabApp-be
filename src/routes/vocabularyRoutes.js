@@ -2,12 +2,13 @@ import express from 'express';
 import {
   getAllVocabularies,
   getVocabularyById,
+  getVocabulariesByLektion,
   createVocabulary,
   updateVocabulary,
   deleteVocabulary,
   searchVocabularies,
 } from '../controllers/vocabularyController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 import {
   validateCreateVocabulary,
@@ -16,17 +17,15 @@ import {
 
 const router = express.Router();
 
-// Require authentication for all vocabulary operations
-router.use(verifyToken);
-
-// Public/User & Admin read endpoints
-router.get('/', getAllVocabularies);
-router.get('/search/:query', searchVocabularies);
-router.get('/:id', getVocabularyById);
+// Public / User read endpoints
+router.get('/', optionalAuth, getAllVocabularies);
+router.get('/search/:query', optionalAuth, searchVocabularies);
+router.get('/lektion/:lektionId', optionalAuth, getVocabulariesByLektion);
+router.get('/:id', optionalAuth, getVocabularyById);
 
 // Admin-only CRUD operations
-router.post('/', isAdmin, validateCreateVocabulary, createVocabulary);
-router.put('/:id', isAdmin, validateUpdateVocabulary, updateVocabulary);
-router.delete('/:id', isAdmin, deleteVocabulary);
+router.post('/', verifyToken, isAdmin, validateCreateVocabulary, createVocabulary);
+router.put('/:id', verifyToken, isAdmin, validateUpdateVocabulary, updateVocabulary);
+router.delete('/:id', verifyToken, isAdmin, deleteVocabulary);
 
 export default router;

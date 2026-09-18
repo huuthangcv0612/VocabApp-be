@@ -18,7 +18,7 @@ const generateToken = (userId) => {
 };
 
 test('Admin Vocabulary API Permissions & Validation Flow', async (t) => {
-  const server = app.listen(0);
+  const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
 
   const address = server.address();

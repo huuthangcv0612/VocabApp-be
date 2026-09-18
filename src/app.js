@@ -13,11 +13,20 @@ import vocabularyRoutes from './routes/vocabularyRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import levelRoutes from './routes/levelRoutes.js';
+import topicRoutes from './routes/topicRoutes.js';
 import lektionRoutes from './routes/lektionRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import questionRoutes from './routes/questionRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import testResultRoutes from './routes/testResultRoutes.js';
+import unitRoutes from './routes/unitRoutes.js';
+import lessonRoutes from './routes/lessonRoutes.js';
+import exerciseRoutes from './routes/exerciseRoutes.js';
+import planRoutes from './routes/planRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
 // Import middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -74,11 +83,21 @@ app.use(['/api/vocabularies', '/api/vocabulary'], vocabularyRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/levels', levelRoutes);
+app.use('/api/topics', topicRoutes);
+app.use('/api/units', unitRoutes);
+app.use('/api/lessons', lessonRoutes);
+app.use('/api/exercises', exerciseRoutes);
 app.use('/api/lektions', lektionRoutes);
+app.use('/api/progress', progressRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/test-results', testResultRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+
 
 // 404 handler
 app.use((req, res) => {

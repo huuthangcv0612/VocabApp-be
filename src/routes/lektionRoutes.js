@@ -3,20 +3,25 @@ import {
   getAllLektions,
   getLektionById,
   getLektionsByLevelId,
+  getLektionsByTopicId,
+  createLektion,
+  updateLektion,
+  deleteLektion,
 } from '../controllers/lektionController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
+import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
+// Public / User read endpoints with optional user context for progress
+router.get('/', optionalAuth, getAllLektions);
+router.get('/level/:levelId', optionalAuth, getLektionsByLevelId);
+router.get('/topic/:topicId', optionalAuth, getLektionsByTopicId);
+router.get('/:id', optionalAuth, getLektionById);
 
-// Lấy tất cả Lektion
-router.get('/', getAllLektions);
-
-// Lấy Lektion theo ID
-router.get('/:id', getLektionById);
-
-// Lấy Lektion theo Level ID
-router.get('/level/:levelId', getLektionsByLevelId);
+// Admin-only management endpoints
+router.post('/', verifyToken, isAdmin, createLektion);
+router.put('/:id', verifyToken, isAdmin, updateLektion);
+router.delete('/:id', verifyToken, isAdmin, deleteLektion);
 
 export default router;

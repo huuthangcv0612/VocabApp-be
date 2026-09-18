@@ -5,9 +5,13 @@ import {
   generateVocabularyQuestion,
   analyzeCommonErrors,
 } from '../controllers/aiController.js';
+import aiConversationRoutes from './aiConversationRoutes.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+// Mount AI Conversations sub-router
+router.use('/conversations', aiConversationRoutes);
 
 router.use(verifyToken);
 
