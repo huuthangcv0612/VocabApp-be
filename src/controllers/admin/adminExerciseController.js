@@ -11,6 +11,7 @@ import {
   validateObjectId,
   validateExerciseType,
   validateReorderItems,
+  validateMatchingContent,
 } from '../../validators/adminContentValidator.js';
 
 export const getAdminExercises = asyncHandler(async (req, res) => {
@@ -47,12 +48,16 @@ export const createAdminExercise = asyncHandler(async (req, res) => {
 
   validateExerciseType(type);
 
-  if (!content || typeof content !== 'object') {
-    throw new AppError('Exercise content must be an object', HTTP_STATUS.BAD_REQUEST);
-  }
+  if (type === 'matching') {
+    validateMatchingContent(content);
+  } else {
+    if (!content || typeof content !== 'object') {
+      throw new AppError('Exercise content must be an object', HTTP_STATUS.BAD_REQUEST);
+    }
 
-  if (!answer || typeof answer !== 'object') {
-    throw new AppError('Exercise answer must be an object', HTTP_STATUS.BAD_REQUEST);
+    if (!answer || typeof answer !== 'object') {
+      throw new AppError('Exercise answer must be an object', HTTP_STATUS.BAD_REQUEST);
+    }
   }
 
   const lessonExists = await Lesson.findById(lesson_id);
@@ -70,12 +75,16 @@ export const createAdminExercise = asyncHandler(async (req, res) => {
     if (!grammarExists) throw new AppError('Referenced grammar not found', HTTP_STATUS.NOT_FOUND);
   }
 
+  const finalAnswer = (type === 'matching' && (!answer || typeof answer !== 'object' || Object.keys(answer).length === 0))
+    ? { pairs: content.pairs }
+    : (answer || {});
+
   const exercise = await Exercise.create({
     lesson_id,
     type,
     order: order || 1,
     content,
-    answer,
+    answer: finalAnswer,
     vocabulary_id: vocabulary_id || null,
     grammar_id: grammar_id || null,
     xp: xp !== undefined ? xp : 2,
@@ -98,14 +107,22 @@ export const updateAdminExercise = asyncHandler(async (req, res) => {
     if (!lessonExists) throw new AppError('Referenced Lesson not found', HTTP_STATUS.NOT_FOUND);
   }
 
+  const existingEx = await Exercise.findById(req.params.id);
+  if (!existingEx) throw new AppError('Exercise not found', HTTP_STATUS.NOT_FOUND);
+
+  const effectiveType = req.body.type || existingEx.type;
+  if (effectiveType === 'matching' && req.body.content) {
+    validateMatchingContent(req.body.content);
+  }
+
   const exercise = await Exercise.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
   }).populate('vocabulary_id').populate('grammar_id');
 
-  if (!exercise) throw new AppError('Exercise not found', HTTP_STATUS.NOT_FOUND);
   sendResponse(res, HTTP_STATUS.OK, 'Exercise updated successfully', { exercise });
 });
+
 
 export const deleteAdminExercise = asyncHandler(async (req, res) => {
   validateObjectId(req.params.id, 'Exercise ID');

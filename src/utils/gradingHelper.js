@@ -109,6 +109,102 @@ export const evaluateWordArrangement = (answerConfig, rawSubmitted) => {
 };
 
 /**
+ * Evaluates matching exercise.
+ * Expects submittedAnswer to be an Array of pairs: [{ left, right }] or [{ id, left, right }]
+ * or an Object containing pairs: { pairs: [...] }
+ * @param {Object} exercise - Exercise document
+ * @param {any} submittedAnswer - User submitted answer payload
+ * @returns {boolean}
+ */
+export const evaluateMatching = (exercise, submittedAnswer) => {
+  if (!exercise) return false;
+
+  const answerConfig = exercise.answer || {};
+  const contentConfig = exercise.content || {};
+
+  // Extract expected pairs array from exercise.answer or exercise.content
+  let expectedPairs = null;
+  if (Array.isArray(answerConfig.pairs) && answerConfig.pairs.length > 0) {
+    expectedPairs = answerConfig.pairs;
+  } else if (Array.isArray(contentConfig.pairs) && contentConfig.pairs.length > 0) {
+    expectedPairs = contentConfig.pairs;
+  }
+
+  if (!Array.isArray(expectedPairs) || expectedPairs.length === 0) {
+    return false;
+  }
+
+  // Extract submitted pairs
+  let submittedPairs = submittedAnswer;
+  if (typeof submittedAnswer === 'object' && submittedAnswer !== null && !Array.isArray(submittedAnswer)) {
+    submittedPairs = submittedAnswer.pairs || submittedAnswer.answer || submittedAnswer.submitted_pairs;
+  }
+
+  if (!Array.isArray(submittedPairs)) {
+    return false;
+  }
+
+  // 1. Length check: Must have exact same number of pairs (no missing, no extra)
+  if (submittedPairs.length !== expectedPairs.length) {
+    return false;
+  }
+
+  // Helper for text normalization
+  const norm = (str) => (str !== null && str !== undefined ? String(str).trim().toLowerCase() : '');
+
+  // 2. Track matched submitted pair indices to ensure 1-to-1 matching
+  const usedSubmittedIndices = new Set();
+
+  for (const expPair of expectedPairs) {
+    if (!expPair || typeof expPair !== 'object') return false;
+
+    const expLeft = norm(expPair.left);
+    const expRight = norm(expPair.right);
+    const expId = expPair.id ? String(expPair.id) : null;
+
+    let matchedIndex = -1;
+
+    for (let i = 0; i < submittedPairs.length; i++) {
+      if (usedSubmittedIndices.has(i)) continue;
+
+      const subPair = submittedPairs[i];
+      if (!subPair || typeof subPair !== 'object') continue;
+
+      const subLeft = norm(subPair.left);
+      const subRight = norm(subPair.right);
+      const subId = subPair.id ? String(subPair.id) : null;
+
+      // If submitted pair contains an ID, verify ID match if present
+      if (subId && expId) {
+        if (subId === expId) {
+          if (subLeft === expLeft && subRight === expRight) {
+            matchedIndex = i;
+            break;
+          } else {
+            // ID matches but content doesn't match
+            return false;
+          }
+        }
+      } else {
+        // Match by content
+        if (subLeft === expLeft && subRight === expRight) {
+          matchedIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (matchedIndex === -1) {
+      return false; // Expected pair was not matched
+    }
+
+    usedSubmittedIndices.add(matchedIndex);
+  }
+
+  return usedSubmittedIndices.size === expectedPairs.length;
+};
+
+/**
  * Evaluates whether a user's submitted answer for an exercise is correct.
  * @param {Object} exercise - The exercise document from database
  * @param {any} submittedAnswer - The answer submitted in request body
@@ -119,6 +215,11 @@ export const evaluateExerciseAnswer = (exercise, submittedAnswer) => {
 
   const type = exercise.type;
   const answerConfig = exercise.answer || {};
+
+  // Branch 0: Matching exercise (type === 'matching')
+  if (type === 'matching') {
+    return evaluateMatching(exercise, submittedAnswer);
+  }
 
   // Extract raw payload if submittedAnswer is an object
   let rawSubmitted = submittedAnswer;
@@ -168,3 +269,4 @@ export const evaluateExerciseAnswer = (exercise, submittedAnswer) => {
 
   return false;
 };
+

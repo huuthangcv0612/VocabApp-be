@@ -32,3 +32,35 @@ export const validateReorderItems = (items) => {
     }
   }
 };
+
+export const validateMatchingContent = (content) => {
+  if (!content || typeof content !== 'object') {
+    throw new AppError('Exercise content must be an object', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  if (!Array.isArray(content.pairs) || content.pairs.length === 0) {
+    throw new AppError('Matching exercise content must contain a non-empty pairs array', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const seenIds = new Set();
+  for (let i = 0; i < content.pairs.length; i++) {
+    const pair = content.pairs[i];
+    if (!pair || typeof pair !== 'object') {
+      throw new AppError(`Matching pair at index ${i} must be an object`, HTTP_STATUS.BAD_REQUEST);
+    }
+    if (!pair.id || typeof pair.id !== 'string' || !pair.id.trim()) {
+      throw new AppError(`Matching pair at index ${i} must have a non-empty string id`, HTTP_STATUS.BAD_REQUEST);
+    }
+    if (!pair.left || typeof pair.left !== 'string' || !pair.left.trim()) {
+      throw new AppError(`Matching pair at index ${i} must have a non-empty left string`, HTTP_STATUS.BAD_REQUEST);
+    }
+    if (!pair.right || typeof pair.right !== 'string' || !pair.right.trim()) {
+      throw new AppError(`Matching pair at index ${i} must have a non-empty right string`, HTTP_STATUS.BAD_REQUEST);
+    }
+    if (seenIds.has(pair.id.trim())) {
+      throw new AppError(`Duplicate pair id found: "${pair.id.trim()}"`, HTTP_STATUS.BAD_REQUEST);
+    }
+    seenIds.add(pair.id.trim());
+  }
+};
+
