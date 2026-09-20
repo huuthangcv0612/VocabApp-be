@@ -38,6 +38,17 @@ const planSchema = new mongoose.Schema(
       default: [],
     },
 
+    permissions: {
+      type: [String],
+      default: [],
+    },
+
+    planType: {
+      type: String,
+      enum: ['FREE', 'PREMIUM', 'CUSTOM'],
+      default: 'PREMIUM',
+    },
+
     isActive: {
       type: Boolean,
       default: true,

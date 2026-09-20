@@ -46,27 +46,67 @@ export const getPlanById = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const createPlan = asyncHandler(async (req, res) => {
-  const { name, code, price, durationDays, description, features, isActive, sortOrder } = req.body;
+  const {
+    name,
+    code,
+    price,
+    durationDays,
+    description,
+    features,
+    isActive,
+    sortOrder,
+    planType,
+    permissions,
+  } = req.body;
 
-  if (!name || !code || price === undefined || !durationDays) {
+  if (!name || !code || price === undefined || durationDays === undefined) {
     throw new AppError('Name, code, price, and durationDays are required', HTTP_STATUS.BAD_REQUEST);
   }
 
-  const existingCode = await Plan.findOne({ code: code.toUpperCase() });
+  const existingCode = await Plan.findOne({ code: code.toUpperCase().trim() });
   if (existingCode) {
     throw new AppError('Plan with this code already exists', HTTP_STATUS.CONFLICT);
   }
 
-  const plan = await Plan.create({
-    name,
-    code: code.toUpperCase(),
+  const validPlanTypes = ['FREE', 'PREMIUM', 'CUSTOM'];
+  let finalPlanType;
+  if (planType !== undefined) {
+    finalPlanType = String(planType).toUpperCase().trim();
+    if (!validPlanTypes.includes(finalPlanType)) {
+      throw new AppError(
+        `Invalid planType. Allowed values: ${validPlanTypes.join(', ')}`,
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+  }
+
+  let cleanPermissions;
+  if (permissions !== undefined) {
+    if (!Array.isArray(permissions)) {
+      throw new AppError('Permissions must be an array of strings', HTTP_STATUS.BAD_REQUEST);
+    }
+    cleanPermissions = permissions.map(String);
+  }
+
+  const planData = {
+    name: name.trim(),
+    code: code.toUpperCase().trim(),
     price,
     durationDays,
     description: description || '',
-    features: features || [],
+    features: Array.isArray(features) ? features : [],
     isActive: isActive !== undefined ? isActive : true,
     sortOrder: sortOrder || 0,
-  });
+  };
+
+  if (finalPlanType !== undefined) {
+    planData.planType = finalPlanType;
+  }
+  if (cleanPermissions !== undefined) {
+    planData.permissions = cleanPermissions;
+  }
+
+  const plan = await Plan.create(planData);
 
   sendResponse(
     res,
@@ -82,29 +122,62 @@ export const createPlan = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const updatePlan = asyncHandler(async (req, res) => {
-  const { name, code, price, durationDays, description, features, isActive, sortOrder } = req.body;
+  const {
+    name,
+    code,
+    price,
+    durationDays,
+    description,
+    features,
+    isActive,
+    sortOrder,
+    planType,
+    permissions,
+  } = req.body;
 
   let plan = await Plan.findById(req.params.id);
   if (!plan) {
     throw new AppError('Plan not found', HTTP_STATUS.NOT_FOUND);
   }
 
-  if (code && code.toUpperCase() !== plan.code) {
-    const existingCode = await Plan.findOne({ code: code.toUpperCase() });
+  if (code && code.toUpperCase().trim() !== plan.code) {
+    const existingCode = await Plan.findOne({ code: code.toUpperCase().trim() });
     if (existingCode) {
       throw new AppError('Plan code already in use', HTTP_STATUS.CONFLICT);
     }
   }
 
+  const validPlanTypes = ['FREE', 'PREMIUM', 'CUSTOM'];
+  let finalPlanType;
+  if (planType !== undefined) {
+    finalPlanType = String(planType).toUpperCase().trim();
+    if (!validPlanTypes.includes(finalPlanType)) {
+      throw new AppError(
+        `Invalid planType. Allowed values: ${validPlanTypes.join(', ')}`,
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+  }
+
+  let cleanPermissions;
+  if (permissions !== undefined) {
+    if (!Array.isArray(permissions)) {
+      throw new AppError('Permissions must be an array of strings', HTTP_STATUS.BAD_REQUEST);
+    }
+    cleanPermissions = permissions.map(String);
+  }
+
   plan = await Plan.findByIdAndUpdate(
     req.params.id,
     {
-      ...(name && { name }),
-      ...(code && { code: code.toUpperCase() }),
+      ...(name && { name: name.trim() }),
+      ...(code && { code: code.toUpperCase().trim() }),
       ...(price !== undefined && { price }),
       ...(durationDays !== undefined && { durationDays }),
       ...(description !== undefined && { description }),
-      ...(features && { features }),
+      ...(features !== undefined && { features }),
+      ...(finalPlanType !== undefined && { planType: finalPlanType }),
+      ...(cleanPermissions !== undefined && { permissions: cleanPermissions }),
       ...(isActive !== undefined && { isActive }),
       ...(sortOrder !== undefined && { sortOrder }),
     },

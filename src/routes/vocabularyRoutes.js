@@ -10,6 +10,7 @@ import {
 } from '../controllers/vocabularyController.js';
 import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
+import { isTeacherOrAdmin } from '../middlewares/planMiddleware.js';
 import {
   validateCreateVocabulary,
   validateUpdateVocabulary,
@@ -19,12 +20,15 @@ const router = express.Router();
 
 // Public / User read endpoints
 router.get('/', optionalAuth, getAllVocabularies);
+router.get('/search', optionalAuth, searchVocabularies);
 router.get('/search/:query', optionalAuth, searchVocabularies);
 router.get('/lektion/:lektionId', optionalAuth, getVocabulariesByLektion);
 router.get('/:id', optionalAuth, getVocabularyById);
 
-// Admin-only CRUD operations
-router.post('/', verifyToken, isAdmin, validateCreateVocabulary, createVocabulary);
+// Creation allowed for Admin & Teachers with Custom plan
+router.post('/', verifyToken, isTeacherOrAdmin, validateCreateVocabulary, createVocabulary);
+
+// Admin-only updates and deletions
 router.put('/:id', verifyToken, isAdmin, validateUpdateVocabulary, updateVocabulary);
 router.delete('/:id', verifyToken, isAdmin, deleteVocabulary);
 

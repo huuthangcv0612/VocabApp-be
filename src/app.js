@@ -27,6 +27,10 @@ import planRoutes from './routes/planRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import classRoutes from './routes/classRoutes.js';
+import interactiveLessonRoutes from './routes/interactiveLessonRoutes.js';
+import interactiveActivityRoutes from './routes/interactiveActivityRoutes.js';
+import interactiveSessionRoutes from './routes/interactiveSessionRoutes.js';
 
 // Import middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -97,6 +101,10 @@ app.use('/api/plans', planRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/api/interactive-lessons', interactiveLessonRoutes);
+app.use('/api/interactive-activities', interactiveActivityRoutes);
+app.use('/api/interactive-sessions', interactiveSessionRoutes);
 
 
 // 404 handler

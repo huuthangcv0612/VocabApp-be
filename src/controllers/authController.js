@@ -10,6 +10,7 @@ import { AppError } from '../utils/errorHandler.js';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, HTTP_STATUS } from '../utils/constants.js';
 import { sendEmail } from '../utils/emailService.js';
 import { sendResponse } from '../utils/responseHandler.js';
+import { getUserPlanAndPermissions } from '../services/permissionService.js';
 
 const getJwtSecret = () => process.env.JWT_SECRET || 'your_jwt_secret';
 const getJwtExpiresIn = () => process.env.JWT_EXPIRES_IN || '7d';
@@ -51,6 +52,25 @@ const buildUserPayload = (user) => ({
   avatar: user.avatar,
   isEmailVerified: user.isEmailVerified,
 });
+
+const buildUserPayloadWithPlan = async (user) => {
+  const basePayload = buildUserPayload(user);
+  try {
+    const planInfo = await getUserPlanAndPermissions(user);
+    return {
+      ...basePayload,
+      plan: planInfo.plan,
+      permissions: planInfo.permissions,
+      subscription: planInfo.subscription,
+      hasCustomPlan: planInfo.hasCustomPlan,
+      canManageClasses: planInfo.canManageClasses,
+      can_create_class: planInfo.can_create_class,
+      isTeacher: planInfo.isTeacher,
+    };
+  } catch (err) {
+    return basePayload;
+  }
+};
 
 const sendVerificationEmail = async (user, token) => {
   const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
@@ -175,7 +195,7 @@ export const login = asyncHandler(async (req, res, next) => {
   const token = generateToken(user._id);
   setAuthCookie(res, token);
 
-  const userPayload = buildUserPayload(user);
+  const userPayload = await buildUserPayloadWithPlan(user);
 
   return res.status(200).json({
     success: true,
@@ -185,6 +205,12 @@ export const login = asyncHandler(async (req, res, next) => {
     data: {
       token,
       user: userPayload,
+      subscription: userPayload.subscription,
+      plan: userPayload.plan,
+      permissions: userPayload.permissions,
+      hasCustomPlan: userPayload.hasCustomPlan,
+      canManageClasses: userPayload.canManageClasses,
+      can_create_class: userPayload.can_create_class,
     },
   });
 });
@@ -412,11 +438,23 @@ export const googleLogin = asyncHandler(async (req, res, next) => {
   const token = generateToken(user._id);
   setAuthCookie(res, token);
 
+  const userPayload = await buildUserPayloadWithPlan(user);
+
   return res.status(200).json({
     success: true,
     message: 'Đăng nhập thành công',
     token,
-    user: buildUserPayload(user),
+    user: userPayload,
+    data: {
+      token,
+      user: userPayload,
+      subscription: userPayload.subscription,
+      plan: userPayload.plan,
+      permissions: userPayload.permissions,
+      hasCustomPlan: userPayload.hasCustomPlan,
+      canManageClasses: userPayload.canManageClasses,
+      can_create_class: userPayload.can_create_class,
+    },
   });
 });
 
@@ -426,8 +464,8 @@ export const googleLogin = asyncHandler(async (req, res, next) => {
  * @access  Private
  */
 export const getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
-  const userPayload = user ? buildUserPayload(user) : null;
+  const user = await User.findById(req.user.id || req.user._id);
+  const userPayload = user ? await buildUserPayloadWithPlan(user) : null;
 
   return res.status(200).json({
     success: true,
@@ -435,6 +473,12 @@ export const getMe = asyncHandler(async (req, res, next) => {
     user: userPayload,
     data: {
       user: userPayload,
+      subscription: userPayload?.subscription || null,
+      plan: userPayload?.plan || 'FREE',
+      permissions: userPayload?.permissions || [],
+      hasCustomPlan: userPayload?.hasCustomPlan || false,
+      canManageClasses: userPayload?.canManageClasses || false,
+      can_create_class: userPayload?.can_create_class || false,
     },
   });
 });

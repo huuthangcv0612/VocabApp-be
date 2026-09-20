@@ -16,6 +16,28 @@ export const HTTP_STATUS = {
 export const ROLES = {
   USER: 'user',
   ADMIN: 'admin',
+  TEACHER: 'teacher',
+  STUDENT: 'student',
+};
+
+export const PERMISSIONS = {
+  BASIC_LEARNING: 'basic_learning',
+  AI_LEARNING: 'ai_learning',
+  CLASS_MANAGEMENT: 'class_management',
+  INTERACTIVE_CLASSES: 'interactive_classes',
+  TEACHER_DASHBOARD: 'teacher_dashboard',
+};
+
+export const PLAN_PERMISSIONS = {
+  FREE: [PERMISSIONS.BASIC_LEARNING],
+  PREMIUM: [PERMISSIONS.BASIC_LEARNING, PERMISSIONS.AI_LEARNING],
+  CUSTOM: [
+    PERMISSIONS.BASIC_LEARNING,
+    PERMISSIONS.AI_LEARNING,
+    PERMISSIONS.CLASS_MANAGEMENT,
+    PERMISSIONS.INTERACTIVE_CLASSES,
+    PERMISSIONS.TEACHER_DASHBOARD,
+  ],
 };
 
 export const ERROR_MESSAGES = {

@@ -126,12 +126,24 @@ export const createVocabulary = asyncHandler(async (req, res, next) => {
     difficultyLevel,
   } = req.body;
 
+  const normalizedWord = String(word).trim().replace(/\s+/g, ' ');
+
+  // Prevent duplicate vocabulary ignoring case and whitespace differences
+  const escapedWord = normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const existingVocab = await Vocabulary.findOne({
+    word: { $regex: new RegExp(`^${escapedWord}$`, 'i') },
+  });
+
+  if (existingVocab) {
+    throw new AppError('Vocabulary already exists', HTTP_STATUS.CONFLICT);
+  }
+
   const vocabulary = await Vocabulary.create({
-    word,
+    word: normalizedWord,
     article: article || null,
     plural: plural || null,
     type: type || 'noun',
-    meaning,
+    meaning: String(meaning).trim(),
     pronunciation: pronunciation || null,
     example: example || null,
     translation: translation || null,
@@ -139,7 +151,7 @@ export const createVocabulary = asyncHandler(async (req, res, next) => {
     image: image || null,
     level_id: level_id || levelId || null,
     difficultyLevel: difficultyLevel || 'A1',
-    createdBy: req.user.id,
+    createdBy: req.user._id || req.user.id,
   });
 
   const populatedVocab = await Vocabulary.findById(vocabulary._id)
@@ -246,18 +258,27 @@ export const deleteVocabulary = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Search vocabularies by keyword
- * @route   GET /api/vocabularies/search/:query
+ * @desc    Search vocabularies by keyword / autocomplete
+ * @route   GET /api/vocabularies/search?q=... or GET /api/vocabularies/search/:query
  * @access  Public
  */
 export const searchVocabularies = asyncHandler(async (req, res, next) => {
-  const { query } = req.params;
+  const searchTerm = req.query.q || req.query.query || req.params.query;
 
-  if (!query || !query.trim()) {
-    throw new AppError('Search query is required', HTTP_STATUS.BAD_REQUEST);
+  if (!searchTerm || !String(searchTerm).trim()) {
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      statusCode: HTTP_STATUS.OK,
+      message: 'Search query is empty',
+      exists: false,
+      data: [],
+      vocabularies: [],
+    });
   }
 
-  const searchRegex = new RegExp(query.trim(), 'i');
+  const cleanQuery = String(searchTerm).trim();
+  const escapedQuery = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const searchRegex = new RegExp(escapedQuery, 'i');
 
   const vocabularies = await Vocabulary.find({
     $or: [
@@ -269,12 +290,18 @@ export const searchVocabularies = asyncHandler(async (req, res, next) => {
     .limit(20)
     .populate('level_id', 'level_name description order');
 
-  sendResponse(
-    res,
-    HTTP_STATUS.OK,
-    'Search results fetched successfully',
-    { vocabularies }
+  const exists = vocabularies.some(
+    (v) => v.word.trim().toLowerCase() === cleanQuery.toLowerCase()
   );
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    statusCode: HTTP_STATUS.OK,
+    message: 'Search results fetched successfully',
+    exists,
+    data: vocabularies,
+    vocabularies,
+  });
 });
 
 /**

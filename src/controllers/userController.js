@@ -3,6 +3,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { AppError } from '../utils/errorHandler.js';
 import { sendResponse } from '../utils/responseHandler.js';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, HTTP_STATUS } from '../utils/constants.js';
+import { getUserPlanAndPermissions } from '../services/permissionService.js';
 
 /**
  * @desc    Get user profile
@@ -10,17 +11,37 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES, HTTP_STATUS } from '../utils/constant
  * @access  Private
  */
 export const getUserProfile = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user.id || req.user._id);
 
   if (!user) {
     throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
   }
 
+  const planInfo = await getUserPlanAndPermissions(user);
+  const userObj = user.toObject ? user.toObject() : { ...user };
+  userObj.plan = planInfo.plan;
+  userObj.permissions = planInfo.permissions;
+  userObj.subscription = planInfo.subscription;
+  userObj.hasCustomPlan = planInfo.hasCustomPlan;
+  userObj.canManageClasses = planInfo.canManageClasses;
+  userObj.can_create_class = planInfo.can_create_class;
+  userObj.isTeacher = planInfo.isTeacher;
+
   sendResponse(
     res,
     HTTP_STATUS.OK,
     'Profile fetched successfully',
-    { user }
+    {
+      user: userObj,
+      planInfo: {
+        plan: planInfo.plan,
+        permissions: planInfo.permissions,
+        subscription: planInfo.subscription,
+        hasCustomPlan: planInfo.hasCustomPlan,
+        canManageClasses: planInfo.canManageClasses,
+        can_create_class: planInfo.can_create_class,
+      },
+    }
   );
 });
 

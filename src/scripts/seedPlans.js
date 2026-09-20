@@ -4,6 +4,24 @@ import Plan from '../models/Plan.js';
 
 const initialPlans = [
   {
+    name: 'Gói Miễn Phí',
+    code: 'FREE',
+    price: 0,
+    durationDays: 0,
+    description: 'Học tiếng Đức cơ bản miễn phí',
+    features: [
+      'Bài học & từ vựng cơ bản',
+      'Bài kiểm tra & Quiz cơ bản',
+      'Tham gia lớp học bằng mã lớp',
+    ],
+    permissions: [
+      'basic_learning',
+    ],
+    planType: 'FREE',
+    isActive: true,
+    sortOrder: 0,
+  },
+  {
     name: 'Premium 1 tháng',
     code: 'PREMIUM_1_MONTH',
     price: 10000,
@@ -15,6 +33,11 @@ const initialPlans = [
       'Theo dõi tiến độ học chi tiết',
       'Hỗ trợ AI giải thích ngữ pháp',
     ],
+    permissions: [
+      'basic_learning',
+      'ai_learning',
+    ],
+    planType: 'PREMIUM',
     isActive: true,
     sortOrder: 1,
   },
@@ -31,6 +54,11 @@ const initialPlans = [
       'Hỗ trợ AI giải thích ngữ pháp',
       'Ưu đãi tiết kiệm chi phí',
     ],
+    permissions: [
+      'basic_learning',
+      'ai_learning',
+    ],
+    planType: 'PREMIUM',
     isActive: true,
     sortOrder: 2,
   },
@@ -47,8 +75,37 @@ const initialPlans = [
       'Hỗ trợ AI giải thích ngữ pháp',
       'Tiết kiệm nhất',
     ],
+    permissions: [
+      'basic_learning',
+      'ai_learning',
+    ],
+    planType: 'PREMIUM',
     isActive: true,
     sortOrder: 3,
+  },
+  {
+    name: 'Custom Giáo viên & Tổ chức',
+    code: 'CUSTOM_TEACHER',
+    price: 200000,
+    durationDays: 365,
+    description: 'Dành cho giáo viên và tổ chức: Quản lý lớp học và Interactive Live Classes',
+    features: [
+      'Toàn bộ nội dung cơ bản',
+      'Quản lý lớp học & danh sách học sinh',
+      'Tạo Interactive Lessons & Từ vựng riêng',
+      'Tổ chức Live Sessions tương tác (Flashcard, Quiz, Spin)',
+      'Teacher Dashboard & Giám sát kết quả học sinh',
+    ],
+    permissions: [
+      'basic_learning',
+      'ai_learning',
+      'class_management',
+      'interactive_classes',
+      'teacher_dashboard',
+    ],
+    planType: 'CUSTOM',
+    isActive: true,
+    sortOrder: 4,
   },
 ];
 
