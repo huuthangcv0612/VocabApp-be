@@ -34,6 +34,7 @@ import interactiveSessionRoutes from './routes/interactiveSessionRoutes.js';
 
 // Import middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import corsOptions from './config/cors.js';
 
 const app = express();
 
@@ -43,9 +44,24 @@ if (process.env.SKIP_DB_CONNECT !== 'true') {
 }
 
 // Middleware
-app.use(helmet());
+// 1. CORS first to handle preflight OPTIONS and set headers before any errors or rate limiters
+app.use(cors(corsOptions));
+
+// 2. Helmet with crossOriginResourcePolicy configured for cross-origin APIs
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// 3. Cookie parser
 app.use(cookieParser());
 
+// 4. Body parser
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// 5. Rate limiters
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -53,17 +69,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://vocab-app-fe-five.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
-
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 

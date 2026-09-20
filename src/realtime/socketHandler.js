@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import InteractiveSession from '../models/InteractiveSession.js';
 import ClassMember from '../models/ClassMember.js';
 import { ROLES } from '../utils/constants.js';
+import { allowedOrigins } from '../config/cors.js';
 
 let ioInstance = null;
 
@@ -17,11 +18,7 @@ export const initSocket = (httpServer) => {
 
   ioInstance = new Server(httpServer, {
     cors: {
-      origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://vocab-app-fe-five.vercel.app',
-      ],
+      origin: allowedOrigins,
       credentials: true,
       methods: ['GET', 'POST'],
     },
