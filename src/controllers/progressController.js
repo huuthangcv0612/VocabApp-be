@@ -12,6 +12,19 @@ import { AppError } from '../utils/errorHandler.js';
 import { sendResponse } from '../utils/responseHandler.js';
 import { HTTP_STATUS } from '../utils/constants.js';
 import { evaluateExerciseAnswer } from '../utils/gradingHelper.js';
+import { calculateProgressOverview, syncVocabularyProgress } from '../services/progressService.js';
+
+/**
+ * @desc    Get aggregated progress overview for user progress page
+ * @route   GET /api/progress/overview
+ * @access  Private
+ */
+export const getProgressOverview = asyncHandler(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const overviewData = await calculateProgressOverview(userId);
+
+  sendResponse(res, HTTP_STATUS.OK, 'Progress overview fetched successfully', overviewData);
+});
 
 /**
  * @desc    Get overall user progress across curriculum
@@ -186,6 +199,16 @@ export const submitLessonExercise = asyncHandler(async (req, res) => {
     exProgress.is_correct = isCorrect;
     exProgress.attempts += 1;
     await exProgress.save();
+  }
+
+  // 1b. Sync UserVocabularyProgress if exercise has vocabulary_id
+  if (exercise.vocabulary_id) {
+    await syncVocabularyProgress({
+      userId,
+      exercise,
+      isCorrect,
+      lessonId,
+    });
   }
 
   // 2. Recalculate UserLessonProgress
@@ -538,6 +561,7 @@ export const completeLektion = asyncHandler(async (req, res) => {
 });
 
 export default {
+  getProgressOverview,
   getUserProgressOverview,
   getLessonProgress,
   startLessonProgress,

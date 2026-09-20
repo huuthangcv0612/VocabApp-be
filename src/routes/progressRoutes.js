@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  getProgressOverview,
   getUserProgressOverview,
   getLessonProgress,
   startLessonProgress,
@@ -16,6 +17,7 @@ const router = express.Router();
 // Require authentication for all user progress routes
 router.use(verifyToken);
 
+router.get('/overview', getProgressOverview);
 router.get('/', getUserProgressOverview);
 
 // Lesson Progress Tracking Endpoints (New Architecture)
