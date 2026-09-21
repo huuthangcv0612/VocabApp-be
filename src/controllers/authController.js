@@ -42,6 +42,11 @@ const clearAuthCookie = (res) => {
   });
 };
 
+const getFrontendUrl = () => {
+  const url = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:5173';
+  return url.replace(/\/+$/, '');
+};
+
 const buildUserPayload = (user) => ({
   _id: user._id,
   id: user._id,
@@ -50,7 +55,8 @@ const buildUserPayload = (user) => ({
   email: user.email,
   role: user.role,
   avatar: user.avatar,
-  isEmailVerified: user.isEmailVerified,
+  isEmailVerified: Boolean(user.isEmailVerified ?? user.emailVerified),
+  emailVerified: Boolean(user.emailVerified ?? user.isEmailVerified),
 });
 
 const buildUserPayloadWithPlan = async (user) => {
@@ -73,24 +79,79 @@ const buildUserPayloadWithPlan = async (user) => {
 };
 
 const sendVerificationEmail = async (user, token) => {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
-  const link = `${baseUrl}/verify-email?token=${token}`;
+  const frontendUrl = getFrontendUrl();
+  const link = `${frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
+  const displayName = user.name || user.username || user.email;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333333; margin: 0; padding: 20px; background-color: #f8fafc; }
+    .container { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .header { margin-bottom: 24px; text-align: center; }
+    .title { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+    .content { font-size: 16px; color: #334155; margin-bottom: 32px; }
+    .button-container { text-align: center; margin: 30px 0; }
+    .button { display: inline-block; background-color: #2563eb; color: #ffffff !important; padding: 14px 32px; font-size: 16px; font-weight: 600; text-decoration: none; border-radius: 8px; }
+    .footer { font-size: 14px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+    .link-alt { font-size: 13px; color: #94a3b8; word-break: break-all; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">DeutschUp</h1>
+    </div>
+    <div class="content">
+      <p>Xin chào ${displayName},</p>
+      <p>Cảm ơn bạn đã đăng ký DeutschUp.</p>
+      <p>Bạn vui lòng ấn vào nút bên dưới để xác nhận đăng ký tài khoản:</p>
+      <div class="button-container">
+        <a href="${link}" class="button" target="_blank">Xác nhận đăng ký</a>
+      </div>
+      <p>Nếu bạn không thực hiện đăng ký tài khoản này, bạn có thể bỏ qua email này.</p>
+      <p class="link-alt">Nếu nút trên không hoạt động, bạn có thể copy link sau vào trình duyệt:<br><a href="${link}">${link}</a></p>
+    </div>
+    <div class="footer">
+      <p>Trân trọng,<br>DeutschUp</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const text = `Xin chào ${displayName},
+
+Cảm ơn bạn đã đăng ký DeutschUp.
+
+Bạn vui lòng ấn vào nút bên dưới để xác nhận đăng ký tài khoản:
+${link}
+
+Nếu bạn không thực hiện đăng ký tài khoản này, bạn có thể bỏ qua email này.
+
+Trân trọng,
+DeutschUp`;
 
   await sendEmail({
     to: user.email,
-    subject: 'Verify your email',
-    html: `<p>Hello ${user.name || user.email},</p><p>Please verify your email by clicking <a href="${link}">here</a>.</p>`,
+    subject: 'Xác nhận đăng ký tài khoản DeutschUp',
+    html,
+    text,
   });
 };
 
 const sendPasswordResetEmail = async (user, token) => {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
-  const link = `${baseUrl}/reset-password?token=${token}`;
+  const frontendUrl = getFrontendUrl();
+  const link = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
   await sendEmail({
     to: user.email,
     subject: 'Reset your password',
     html: `<p>Hello ${user.name || user.email},</p><p>Click <a href="${link}">here</a> to reset your password.</p>`,
+    text: `Hello ${user.name || user.email},\n\nClick the link to reset your password: ${link}`,
   });
 };
 
@@ -125,32 +186,42 @@ export const register = asyncHandler(async (req, res, next) => {
     }
   }
 
-  const user = await User.create({
-    name,
-    username,
-    email,
-    password,
-    isEmailVerified: false,
-  });
+  let user;
+  let verificationToken;
 
-  const verificationToken = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  try {
+    user = await User.create({
+      name,
+      username,
+      email,
+      password,
+      isEmailVerified: false,
+      emailVerified: false,
+    });
 
-  await EmailVerification.create({
-    userId: user._id,
-    tokenHash: hashToken(verificationToken),
-    expiresAt,
-  });
+    verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-  await sendVerificationEmail(user, verificationToken);
+    await EmailVerification.create({
+      userId: user._id,
+      tokenHash: hashToken(verificationToken),
+      expiresAt,
+    });
 
-  const token = generateToken(user._id);
-  setAuthCookie(res, token);
+    await sendVerificationEmail(user, verificationToken);
+  } catch (error) {
+    // Rollback user and token if verification email could not be sent
+    if (user && user._id) {
+      await User.findByIdAndDelete(user._id).catch(() => {});
+      await EmailVerification.deleteMany({ userId: user._id }).catch(() => {});
+    }
+    throw error;
+  }
 
+  // Do not issue JWT immediately upon registration
   return res.status(201).json({
     success: true,
-    message: 'Đăng ký thành công. Vui lòng xác thực email.',
-    token,
+    message: 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.',
     user: buildUserPayload(user),
   });
 });
@@ -179,16 +250,11 @@ export const login = asyncHandler(async (req, res, next) => {
       message: 'Email hoặc mật khẩu không đúng',
     });
   }
-  // Debugging logs for login
-  console.log("===== LOGIN DEBUG =====");
-  console.log("Email:", user.email);
-  console.log("isEmailVerified:", user.isEmailVerified);
-  console.log(user.toObject());
-
-  if (!user.isEmailVerified) {
+  const isVerified = Boolean(user.isEmailVerified ?? user.emailVerified);
+  if (!isVerified) {
     return res.status(403).json({
       success: false,
-      message: 'Email chưa được xác thực. Vui lòng kiểm tra email của bạn.',
+      message: 'Vui lòng xác nhận email trước khi đăng nhập.',
     });
   }
 
@@ -229,11 +295,25 @@ export const resendVerification = asyncHandler(async (req, res, next) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(404).json({ success: false, message: 'User not found' });
+    return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản với email này.' });
   }
 
-  if (user.isEmailVerified) {
-    return res.status(200).json({ success: true, message: 'Email already verified' });
+  if (user.isEmailVerified || user.emailVerified) {
+    return res.status(400).json({ success: false, message: 'Email này đã được xác thực. Bạn có thể đăng nhập ngay.' });
+  }
+
+  // Cooldown check: prevent sending more than once every 60 seconds
+  const lastVerification = await EmailVerification.findOne({ userId: user._id }).sort({ createdAt: -1 });
+  if (lastVerification) {
+    const timeSinceLast = Date.now() - new Date(lastVerification.createdAt).getTime();
+    const COOLDOWN_MS = 60 * 1000;
+    if (timeSinceLast < COOLDOWN_MS) {
+      const waitSeconds = Math.ceil((COOLDOWN_MS - timeSinceLast) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Vui lòng đợi ${waitSeconds} giây trước khi yêu cầu gửi lại email xác thực.`,
+      });
+    }
   }
 
   const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -248,7 +328,7 @@ export const resendVerification = asyncHandler(async (req, res, next) => {
 
   await sendVerificationEmail(user, verificationToken);
 
-  return res.status(200).json({ success: true, message: 'Verification email sent' });
+  return res.status(200).json({ success: true, message: 'Đã gửi lại email xác nhận. Vui lòng kiểm tra hộp thư của bạn.' });
 });
 
 /**
@@ -257,20 +337,25 @@ export const resendVerification = asyncHandler(async (req, res, next) => {
  * @access  Public
  */
 export const verifyEmail = asyncHandler(async (req, res, next) => {
-  const token = req.query.token;
+  const token = typeof req.query.token === 'string' ? req.query.token.trim() : '';
 
   if (!token) {
     throw new AppError('Verification token is required', HTTP_STATUS.BAD_REQUEST);
   }
 
-  const verificationRecord = await EmailVerification.findOne({
-    tokenHash: hashToken(token),
-    used: false,
-    expiresAt: { $gt: new Date() },
-  });
+  const hashed = hashToken(token);
+  const verificationRecord = await EmailVerification.findOne({ tokenHash: hashed });
 
   if (!verificationRecord) {
-    throw new AppError('Invalid or expired verification token', HTTP_STATUS.BAD_REQUEST);
+    throw new AppError('Link xác thực không hợp lệ hoặc không tồn tại.', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  if (verificationRecord.used) {
+    throw new AppError('Link xác thực này đã được sử dụng.', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  if (new Date(verificationRecord.expiresAt) <= new Date()) {
+    throw new AppError('Link xác thực đã hết hạn. Vui lòng yêu cầu gửi lại link mới.', HTTP_STATUS.BAD_REQUEST);
   }
 
   const user = await User.findById(verificationRecord.userId);
@@ -279,11 +364,19 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   }
 
   user.isEmailVerified = true;
+  user.emailVerified = true;
   await user.save();
+
   verificationRecord.used = true;
   await verificationRecord.save();
 
-  return res.status(200).json({ success: true, message: 'Email verified successfully' });
+  // Invalidate any other tokens for this user
+  await EmailVerification.deleteMany({ userId: user._id, _id: { $ne: verificationRecord._id } });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ.',
+  });
 });
 
 /**
@@ -428,10 +521,12 @@ export const googleLogin = asyncHandler(async (req, res, next) => {
       email,
       password: crypto.randomBytes(24).toString('hex'),
       isEmailVerified: true,
+      emailVerified: true,
       avatar: payload.picture || null,
     });
-  } else if (!user.isEmailVerified) {
+  } else if (!user.isEmailVerified || !user.emailVerified) {
     user.isEmailVerified = true;
+    user.emailVerified = true;
     await user.save();
   }
 
