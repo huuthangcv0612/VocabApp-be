@@ -13,9 +13,11 @@ export function calculateConversationScore({
   used_vocabulary_count = 0,
   mistake_count = 0,
   turn_count = 0,
+  maxTurns = 3,
 }) {
-  // Participation score (up to 40 pts based on 10 max turns)
-  const participationRatio = Math.min(1, Math.max(0, turn_count / 10));
+  // Participation score (up to 40 pts based on max turns, default 3)
+  const safeMaxTurns = maxTurns > 0 ? maxTurns : 3;
+  const participationRatio = Math.min(1, Math.max(0, turn_count / safeMaxTurns));
   const participationScore = Math.round(participationRatio * 40);
 
   // Vocabulary usage score (up to 50 pts based on target vocabulary ratio)

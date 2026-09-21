@@ -140,6 +140,7 @@ test('AI Conversation Backend Feature Test Suite', async (t) => {
       user_id: session.user_id,
       lesson_id: session.lesson_id,
       level_id: session.level_id,
+      scenario: session.scenario || '',
       target_vocabulary: session.target_vocabulary,
       messages: session.messages || [],
       used_vocabulary: session.used_vocabulary || [],
@@ -190,6 +191,7 @@ test('AI Conversation Backend Feature Test Suite', async (t) => {
 
     await t.test('CASE 1: Start conversation success', async () => {
       aiService.setMockAIProvider(async () => JSON.stringify({
+        scenario: 'Du sprichst mit einer Freundin über deine Familie.',
         message: 'Hallo! Wie geht es deiner Mutter?',
         feedback: { is_correct: true, correction: null, explanation: null },
         used_vocabulary: [],
@@ -214,6 +216,9 @@ test('AI Conversation Backend Feature Test Suite', async (t) => {
       assert.equal(data.data.target_vocabulary.length, 2);
       assert.equal(data.data.ai_message.role, 'assistant');
       assert.equal(data.data.turn_count, 0);
+      assert.equal(data.data.userTurnCount, 0);
+      assert.equal(data.data.isCompleted, false);
+      assert.ok(data.data.scenario);
       assert.equal(data.data.status, 'active');
 
       activeSession = data.data;
@@ -365,52 +370,59 @@ test('AI Conversation Backend Feature Test Suite', async (t) => {
       assert.equal(data.success, false);
     });
 
-    await t.test('CASE 10: MAX_TURNS auto-completion', async () => {
+    await t.test('CASE 10: MAX_TURNS auto-completion at 3 turns and rejection at 4th turn', async () => {
       const maxTurnSessionId = new mongoose.Types.ObjectId().toString();
       sessionStore.set(maxTurnSessionId, {
         _id: maxTurnSessionId,
         user_id: userA_Id,
         lesson_id: validLessonId,
         level_id: levelId,
+        scenario: 'Familie Gespräch',
         target_vocabulary: [vocabId1],
         messages: [],
         used_vocabulary: [],
         mistakes: [],
-        turn_count: 9,
+        turn_count: 2,
         status: 'active',
       });
 
       aiService.setMockAIProvider(async () => JSON.stringify({
-        message: 'Das war der 10. Turn!',
+        message: 'Das war der 3. Turn! Danke fürs Sprechen.',
         feedback: { is_correct: true, correction: null, explanation: null },
         used_vocabulary: [],
-        should_continue: true,
+        should_continue: false,
       }));
 
-      const res10 = await fetch(`${baseUrl}/api/ai/conversations/${maxTurnSessionId}/message`, {
+      const res3 = await fetch(`${baseUrl}/api/ai/conversations/${maxTurnSessionId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${tokenA}`,
         },
-        body: JSON.stringify({ message: '10th message' }),
+        body: JSON.stringify({ message: '3rd message' }),
       });
 
-      assert.equal(res10.status, 200);
-      const data10 = await res10.json();
-      assert.equal(data10.data.turn_count, 10);
-      assert.equal(data10.data.status, 'completed');
+      assert.equal(res3.status, 200);
+      const data3 = await res3.json();
+      assert.equal(data3.data.turn_count, 3);
+      assert.equal(data3.data.userTurnCount, 3);
+      assert.equal(data3.data.isCompleted, true);
+      assert.equal(data3.data.status, 'completed');
 
-      const res11 = await fetch(`${baseUrl}/api/ai/conversations/${maxTurnSessionId}/message`, {
+      // 4th turn MUST be rejected
+      const res4 = await fetch(`${baseUrl}/api/ai/conversations/${maxTurnSessionId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${tokenA}`,
         },
-        body: JSON.stringify({ message: '11th message' }),
+        body: JSON.stringify({ message: '4th message' }),
       });
 
-      assert.equal(res11.status, 409);
+      assert.equal(res4.status, 409);
+      const data4 = await res4.json();
+      assert.equal(data4.success, false);
+      assert.match(data4.message, /completed/i);
     });
 
     await t.test('CASE 11: Complete session', async () => {
@@ -552,6 +564,137 @@ test('AI Conversation Backend Feature Test Suite', async (t) => {
       assert.equal(data.success, true);
       assert.deepEqual(data.data.used_vocabulary, [vocabId1]);
       assertSubset(data.data.used_vocabulary, [vocabId1, vocabId2]);
+    });
+
+    await t.test('CASE 16: Full 3-Turn Conversation Flow with lessonId alias & 4th reply rejection', async () => {
+      // 1. Start conversation using lessonId (camelCase alias)
+      aiService.setMockAIProvider(async () => JSON.stringify({
+        scenario: 'Du sprichst mit einer neuen Freundin über deine Familie.',
+        message: 'Hallo! Hast du Geschwister?',
+        feedback: { is_correct: true, correction: null, explanation: null },
+        used_vocabulary: [],
+        should_continue: true,
+      }));
+
+      const startRes = await fetch(`${baseUrl}/api/ai/conversation/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenA}`,
+        },
+        body: JSON.stringify({ lessonId: validLessonId }),
+      });
+
+      assert.equal(startRes.status, 200);
+      const startData = await startRes.json();
+      assert.equal(startData.success, true);
+      assert.equal(startData.data.userTurnCount, 0);
+      assert.equal(startData.data.turn_count, 0);
+      assert.equal(startData.data.isCompleted, false);
+      assert.equal(startData.data.status, 'active');
+      assert.equal(startData.data.scenario, 'Du sprichst mit einer neuen Freundin über deine Familie.');
+
+      const sessId = startData.data.session_id;
+
+      // 2. User reply #1
+      aiService.setMockAIProvider(async () => JSON.stringify({
+        message: 'Schön! Und wie heißt deine Mutter?',
+        feedback: { is_correct: true, correction: null, explanation: null },
+        used_vocabulary: [vocabId1],
+        should_continue: true,
+      }));
+
+      const reply1Res = await fetch(`${baseUrl}/api/ai/conversation/${sessId}/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenA}`,
+        },
+        body: JSON.stringify({ message: 'Ja, ich habe einen Bruder.' }),
+      });
+
+      assert.equal(reply1Res.status, 200);
+      const reply1Data = await reply1Res.json();
+      assert.equal(reply1Data.data.userTurnCount, 1);
+      assert.equal(reply1Data.data.turn_count, 1);
+      assert.equal(reply1Data.data.isCompleted, false);
+      assert.equal(reply1Data.data.status, 'active');
+
+      // 3. User reply #2
+      aiService.setMockAIProvider(async () => JSON.stringify({
+        message: 'Toll! Was macht dein Vater beruflich?',
+        feedback: { is_correct: true, correction: null, explanation: null },
+        used_vocabulary: [vocabId2],
+        should_continue: true,
+      }));
+
+      const reply2Res = await fetch(`${baseUrl}/api/ai/conversation/${sessId}/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenA}`,
+        },
+        body: JSON.stringify({ message: 'Meine Mutter heißt Anna.' }),
+      });
+
+      assert.equal(reply2Res.status, 200);
+      const reply2Data = await reply2Res.json();
+      assert.equal(reply2Data.data.userTurnCount, 2);
+      assert.equal(reply2Data.data.turn_count, 2);
+      assert.equal(reply2Data.data.isCompleted, false);
+      assert.equal(reply2Data.data.status, 'active');
+
+      // 4. User reply #3 (Final User Reply)
+      aiService.setMockAIProvider(async () => JSON.stringify({
+        message: 'Das war ein tolles Gespräch! Du hast super auf Deutsch geantwortet. Danke fürs Sprechen!',
+        feedback: { is_correct: true, correction: null, explanation: null },
+        used_vocabulary: [],
+        should_continue: false,
+      }));
+
+      const reply3Res = await fetch(`${baseUrl}/api/ai/conversation/${sessId}/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenA}`,
+        },
+        body: JSON.stringify({ message: 'Mein Vater ist Arzt.' }),
+      });
+
+      assert.equal(reply3Res.status, 200);
+      const reply3Data = await reply3Res.json();
+      assert.equal(reply3Data.data.userTurnCount, 3);
+      assert.equal(reply3Data.data.turn_count, 3);
+      assert.equal(reply3Data.data.isCompleted, true);
+      assert.equal(reply3Data.data.status, 'completed');
+
+      // 5. User reply #4 (MUST BE STRICTLY REJECTED WITH HTTP 409)
+      const reply4Res = await fetch(`${baseUrl}/api/ai/conversation/${sessId}/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenA}`,
+        },
+        body: JSON.stringify({ message: '4th message attempt - should fail' }),
+      });
+
+      assert.equal(reply4Res.status, 409);
+      const reply4Data = await reply4Res.json();
+      assert.equal(reply4Data.success, false);
+      assert.match(reply4Data.message, /completed/i);
+
+      // 6. Verify GET session has metadata
+      const getRes = await fetch(`${baseUrl}/api/ai/conversation/${sessId}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${tokenA}` },
+      });
+
+      assert.equal(getRes.status, 200);
+      const getData = await getRes.json();
+      assert.equal(getData.data.userTurnCount, 3);
+      assert.equal(getData.data.isCompleted, true);
+      assert.equal(getData.data.status, 'completed');
+      assert.ok(getData.data.scenario);
     });
 
   } finally {
