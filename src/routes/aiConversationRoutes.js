@@ -4,12 +4,16 @@ import {
   sendMessage,
   completeSession,
   getSession,
+  textToSpeech,
 } from '../controllers/aiConversationController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Require authentication for all AI conversation endpoints
+// AI Speech synthesis endpoint (accessible with or without token)
+router.post('/tts', optionalAuth, textToSpeech);
+
+// Require authentication for all AI conversation session endpoints
 router.use(verifyToken);
 
 // Start conversation

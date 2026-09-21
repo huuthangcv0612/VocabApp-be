@@ -10,8 +10,8 @@ import { verifyToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Mount AI Conversations sub-router
-router.use('/conversations', aiConversationRoutes);
+// Mount AI Conversations sub-router (support both /conversations and /conversation)
+router.use(['/conversations', '/conversation'], aiConversationRoutes);
 
 router.use(verifyToken);
 

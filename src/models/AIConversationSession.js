@@ -62,6 +62,11 @@ const aiConversationSessionSchema = new mongoose.Schema(
       ref: 'Level',
       required: [true, 'Please specify level_id'],
     },
+    scenario: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     target_vocabulary: [
       {
         type: mongoose.Schema.Types.ObjectId,
