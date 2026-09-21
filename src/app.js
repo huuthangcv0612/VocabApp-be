@@ -67,10 +67,24 @@ const authLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+  message: {
+    success: false,
+    message: 'Bạn đã yêu cầu gửi lại email xác nhận quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+  },
 });
 
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/resend-verification', resendVerificationLimiter);
 
 // Test endpoints
 app.get('/', (req, res) => {

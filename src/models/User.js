@@ -52,6 +52,10 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
     emailVerificationToken: {
       type: String,
       default: null,
@@ -69,6 +73,15 @@ const UserSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Synchronize isEmailVerified and emailVerified
+UserSchema.pre('save', function () {
+  if (this.isModified('isEmailVerified') && !this.isModified('emailVerified')) {
+    this.emailVerified = this.isEmailVerified;
+  } else if (this.isModified('emailVerified') && !this.isModified('isEmailVerified')) {
+    this.isEmailVerified = this.emailVerified;
+  }
+});
 
 // Hash password before saving
 UserSchema.pre('save', async function () {
