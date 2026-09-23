@@ -33,7 +33,9 @@ export const getUserPlanAndPermissions = async (userOrId, fallbackRole = null) =
     userId,
     status: 'ACTIVE',
     endDate: { $gt: now },
-  }).populate('planId');
+  })
+    .sort({ endDate: -1 })
+    .populate('planId');
 
   // If no active subscription or expired, user is on FREE plan
   if (!subscription || !subscription.planId) {

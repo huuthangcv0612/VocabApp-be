@@ -1,0 +1,52 @@
+{
+  "common": {
+    "server_error": "Đã xảy ra lỗi máy chủ nội bộ. Vui lòng thử lại sau.",
+    "not_found": "Không tìm thấy tài nguyên yêu cầu.",
+    "validation_error": "Dữ liệu gửi lên không hợp lệ.",
+    "unauthorized": "Bạn không có quyền thực hiện hành động này.",
+    "forbidden": "Truy cập bị từ chối.",
+    "token_required": "Vui lòng cung cấp mã xác thực (Token).",
+    "invalid_token": "Mã xác thực không hợp lệ hoặc đã hết hạn."
+  },
+  "auth": {
+    "login_success": "Đăng nhập thành công.",
+    "register_success": "Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.",
+    "invalid_credentials": "Email hoặc mật khẩu không đúng.",
+    "email_not_verified": "Vui lòng xác nhận email trước khi đăng nhập.",
+    "email_already_exists": "Email này đã được sử dụng.",
+    "username_already_exists": "Tên đăng nhập đã tồn tại.",
+    "passwords_not_match": "Mật khẩu xác nhận không khớp.",
+    "verify_email_success": "Xác thực email thành công. Bạn có thể đăng nhập ngay.",
+    "verify_email_invalid": "Liên kết xác thực không hợp lệ hoặc không tồn tại.",
+    "verify_email_expired": "Liên kết xác thực đã hết hạn. Vui lòng yêu cầu gửi lại.",
+    "verify_email_used": "Liên kết xác thực này đã được sử dụng.",
+    "resend_verification_success": "Đã gửi lại email xác nhận. Vui lòng kiểm tra hộp thư.",
+    "resend_verification_cooldown": "Vui lòng đợi trước khi yêu cầu gửi lại email xác thực.",
+    "password_reset_sent": "Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi.",
+    "password_reset_success": "Mật khẩu đã được đặt lại thành công.",
+    "password_change_success": "Đổi mật khẩu thành công.",
+    "current_password_incorrect": "Mật khẩu hiện tại không chính xác."
+  },
+  "payment": {
+    "order_created": "Đơn hàng đã được tạo thành công.",
+    "order_not_found": "Không tìm thấy đơn hàng.",
+    "order_already_paid": "Đơn hàng này đã được thanh toán.",
+    "order_cancelled": "Đơn hàng đã được hủy thành công.",
+    "webhook_processed": "Xử lý thông báo thanh toán thành công.",
+    "insufficient_amount": "Số tiền chuyển khoản không đủ theo yêu cầu đơn hàng.",
+    "plan_not_found": "Gói đăng ký không tồn tại hoặc đã ngừng hoạt động.",
+    "mock_success": "Thanh toán thử nghiệm thành công.",
+    "mock_forbidden_prod": "Thanh toán thử nghiệm bị cấm trong môi trường Production."
+  },
+  "subscription": {
+    "current_retrieved": "Lấy thông tin gói cước hiện tại thành công.",
+    "history_retrieved": "Lấy lịch sử đăng ký thành công.",
+    "premium_required": "Tính năng này yêu cầu gói cước Premium. Vui lòng nâng cấp tài khoản."
+  },
+  "ai": {
+    "input_required": "Vui lòng cung cấp nội dung cần xử lý.",
+    "rate_limit_exceeded": "Bạn đã gửi quá nhiều yêu cầu AI. Vui lòng thử lại sau ít phút.",
+    "service_unavailable": "Dịch vụ AI hiện đang bận. Vui lòng thử lại sau.",
+    "off_topic_warning": "Tôi là Trợ lý DeutschUp, chỉ có thể hỗ trợ các thông tin về khóa học, bài học, gói cước và cách sử dụng ứng dụng DeutschUp."
+  }
+}

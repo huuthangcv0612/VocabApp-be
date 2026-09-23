@@ -7,14 +7,17 @@ import {
   textToSpeech,
 } from '../controllers/aiConversationController.js';
 import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
+import { requirePermission } from '../middlewares/planMiddleware.js';
+import { PERMISSIONS } from '../utils/constants.js';
 
 const router = express.Router();
 
 // AI Speech synthesis endpoint (accessible with or without token)
 router.post('/tts', optionalAuth, textToSpeech);
 
-// Require authentication for all AI conversation session endpoints
+// Require authentication and Premium ai_learning permission for AI conversation session endpoints
 router.use(verifyToken);
+router.use(requirePermission(PERMISSIONS.AI_LEARNING));
 
 // Start conversation
 router.post('/start', startConversation);

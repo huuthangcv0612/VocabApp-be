@@ -32,8 +32,10 @@ import interactiveLessonRoutes from './routes/interactiveLessonRoutes.js';
 import interactiveActivityRoutes from './routes/interactiveActivityRoutes.js';
 import interactiveSessionRoutes from './routes/interactiveSessionRoutes.js';
 
-// Import middlewares
+// Import middlewares & configs
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import { i18nMiddleware } from './middlewares/i18nMiddleware.js';
+import { corsOptions } from './config/cors.js';
 
 const app = express();
 
@@ -42,13 +44,23 @@ if (process.env.SKIP_DB_CONNECT !== 'true') {
   connectDB();
 }
 
-// Middleware
+// Security Middleware
 app.use(helmet());
 app.use(cookieParser());
+app.use(i18nMiddleware);
 
+// Rate Limiters
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV === 'test',
@@ -66,20 +78,36 @@ const resendVerificationLimiter = rateLimit({
   },
 });
 
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://vocab-app-fe-five.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+  message: {
+    success: false,
+    message: 'Bạn đã gửi quá nhiều yêu cầu AI. Vui lòng thử lại sau ít phút.',
+  },
+});
+
+const ttsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/api/auth/register', registerLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth/resend-verification', resendVerificationLimiter);
+app.use(['/api/ai/conversations/tts', '/api/ai/conversation/tts'], ttsLimiter);
+app.use('/api/ai', aiLimiter);
 
 // Test endpoints
 app.get('/', (req, res) => {

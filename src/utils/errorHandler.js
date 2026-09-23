@@ -15,7 +15,19 @@ export class AppError extends Error {
  */
 export const sendErrorResponse = (error, res) => {
   const statusCode = error.statusCode || 500;
-  const message = error.message || 'Internal Server Error';
+  let message = error.message || 'Internal Server Error';
+
+  if (res.req?.t && typeof message === 'string' && message.includes('.')) {
+    message = res.req.t(message, message);
+  }
+
+  // Prevent leaking internal stack/DB error messages to client in production
+  if (statusCode === 500 && process.env.NODE_ENV === 'production') {
+    message = res.req?.t
+      ? res.req.t('common.server_error', 'Internal Server Error')
+      : 'Internal Server Error';
+  }
+
   const errors = Array.isArray(error.errors) ? error.errors : [];
 
   res.status(statusCode).json({

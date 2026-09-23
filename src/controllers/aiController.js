@@ -4,6 +4,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const getModel = () => process.env.AI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+
 // Nhận xét câu trả lời của học sinh
 export const evaluateStudentSentence = async (req, res) => {
   try {
@@ -12,12 +14,12 @@ export const evaluateStudentSentence = async (req, res) => {
     if (!sentence || !vocabulary) {
       return res.status(400).json({
         success: false,
-        error: 'Cần cung cấp câu trả lời và từ vựng'
+        error: req.t ? req.t('ai.input_required', 'Cần cung cấp câu trả lời và từ vựng') : 'Cần cung cấp câu trả lời và từ vựng'
       });
     }
 
     const prompt = `
-Bạn là giáo viên tiếng Anh chuyên nghiệp. Hãy đánh giá câu trả lời của học sinh dựa trên từ vựng đã học.
+Bạn là giáo viên tiếng Đức chuyên nghiệp. Hãy đánh giá câu trả lời tiếng Đức của học sinh dựa trên từ vựng đã học.
 
 **Thông tin:**
 - Từ vựng cần sử dụng: ${vocabulary.word} (${vocabulary.meaning})
@@ -27,7 +29,7 @@ ${context ? `- Ngữ cảnh: ${context}` : ''}
 
 **Yêu cầu đánh giá:**
 1. **Độ chính xác**: Từ vựng có được sử dụng đúng không?
-2. **Ngữ pháp**: Câu có đúng ngữ pháp không?
+2. **Ngữ pháp**: Câu có đúng ngữ pháp tiếng Đức không?
 3. **Tự nhiên**: Câu có nghe tự nhiên không?
 4. **Độ sáng tạo**: Học sinh có sáng tạo trong việc sử dụng từ không?
 
@@ -45,11 +47,11 @@ ${context ? `- Ngữ cảnh: ${context}` : ''}
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: getModel(),
       messages: [
         {
           role: "system",
-          content: "Bạn là giáo viên tiếng Anh chuyên nghiệp, trả lời bằng tiếng Việt."
+          content: "Bạn là giáo viên tiếng Đức chuyên nghiệp, trả lời bằng tiếng Việt."
         },
         {
           role: "user",
@@ -201,18 +203,18 @@ Tạo một câu hỏi đơn giản bằng tiếng Anh để học sinh sử d�
 
 **Trả về JSON:**
 {
-  "question": "câu hỏi bằng tiếng Anh",
+  "question": "câu hỏi bằng tiếng Đức",
   "expected_word": "từ vựng cần sử dụng",
   "hint": "gợi ý nhỏ nếu cần"
 }
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: getModel(),
       messages: [
         {
           role: "system",
-          content: "Bạn là giáo viên tạo câu hỏi học tiếng Anh."
+          content: "Bạn là giáo viên tạo câu hỏi học tiếng Đức."
         },
         {
           role: "user",
@@ -286,11 +288,11 @@ Phân tích các lỗi thường gặp trong các câu trả lời của học s
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: getModel(),
       messages: [
         {
           role: "system",
-          content: "Bạn là chuyên gia phân tích lỗi học tiếng Anh."
+          content: "Bạn là chuyên gia phân tích lỗi học tiếng Đức."
         },
         {
           role: "user",
