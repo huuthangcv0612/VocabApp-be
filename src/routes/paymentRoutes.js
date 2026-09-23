@@ -4,13 +4,14 @@ import {
   mockPaymentSuccess,
 } from '../controllers/paymentController.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
+import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-// Webhook callback (No auth required as it is called by external payment processor)
+// Webhook callback (Verified by secret token)
 router.post('/webhook', handlePaymentWebhook);
 
-// Dev / Testing helper to simulate successful payment
-router.post('/mock-success', verifyToken, mockPaymentSuccess);
+// Dev / Testing helper to simulate successful payment - Restricted to Admin & Non-Production
+router.post('/mock-success', verifyToken, isAdmin, mockPaymentSuccess);
 
 export default router;

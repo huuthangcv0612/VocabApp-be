@@ -221,7 +221,9 @@ export const register = asyncHandler(async (req, res, next) => {
   // Do not issue JWT immediately upon registration
   return res.status(201).json({
     success: true,
-    message: 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.',
+    message: req.t
+      ? req.t('auth.register_success', 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.')
+      : 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.',
     user: buildUserPayload(user),
   });
 });
@@ -247,14 +249,18 @@ export const login = asyncHandler(async (req, res, next) => {
   if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({
       success: false,
-      message: 'Email hoặc mật khẩu không đúng',
+      message: req.t
+        ? req.t('auth.invalid_credentials', 'Email hoặc mật khẩu không đúng')
+        : 'Email hoặc mật khẩu không đúng',
     });
   }
   const isVerified = Boolean(user.isEmailVerified ?? user.emailVerified);
   if (!isVerified) {
     return res.status(403).json({
       success: false,
-      message: 'Vui lòng xác nhận email trước khi đăng nhập.',
+      message: req.t
+        ? req.t('auth.email_not_verified', 'Vui lòng xác nhận email trước khi đăng nhập.')
+        : 'Vui lòng xác nhận email trước khi đăng nhập.',
     });
   }
 
@@ -265,7 +271,7 @@ export const login = asyncHandler(async (req, res, next) => {
 
   return res.status(200).json({
     success: true,
-    message: 'Đăng nhập thành công',
+    message: req.t ? req.t('auth.login_success', 'Đăng nhập thành công') : 'Đăng nhập thành công',
     token,
     user: userPayload,
     data: {
@@ -328,7 +334,12 @@ export const resendVerification = asyncHandler(async (req, res, next) => {
 
   await sendVerificationEmail(user, verificationToken);
 
-  return res.status(200).json({ success: true, message: 'Đã gửi lại email xác nhận. Vui lòng kiểm tra hộp thư của bạn.' });
+  return res.status(200).json({
+    success: true,
+    message: req.t
+      ? req.t('auth.resend_verification_success', 'Đã gửi lại email xác nhận. Vui lòng kiểm tra hộp thư của bạn.')
+      : 'Đã gửi lại email xác nhận. Vui lòng kiểm tra hộp thư của bạn.',
+  });
 });
 
 /**
@@ -347,15 +358,24 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   const verificationRecord = await EmailVerification.findOne({ tokenHash: hashed });
 
   if (!verificationRecord) {
-    throw new AppError('Link xác thực không hợp lệ hoặc không tồn tại.', HTTP_STATUS.BAD_REQUEST);
+    throw new AppError(
+      req.t ? req.t('auth.verify_email_invalid', 'Link xác thực không hợp lệ hoặc không tồn tại.') : 'Link xác thực không hợp lệ hoặc không tồn tại.',
+      HTTP_STATUS.BAD_REQUEST
+    );
   }
 
   if (verificationRecord.used) {
-    throw new AppError('Link xác thực này đã được sử dụng.', HTTP_STATUS.BAD_REQUEST);
+    throw new AppError(
+      req.t ? req.t('auth.verify_email_used', 'Link xác thực này đã được sử dụng.') : 'Link xác thực này đã được sử dụng.',
+      HTTP_STATUS.BAD_REQUEST
+    );
   }
 
   if (new Date(verificationRecord.expiresAt) <= new Date()) {
-    throw new AppError('Link xác thực đã hết hạn. Vui lòng yêu cầu gửi lại link mới.', HTTP_STATUS.BAD_REQUEST);
+    throw new AppError(
+      req.t ? req.t('auth.verify_email_expired', 'Link xác thực đã hết hạn. Vui lòng yêu cầu gửi lại link mới.') : 'Link xác thực đã hết hạn. Vui lòng yêu cầu gửi lại link mới.',
+      HTTP_STATUS.BAD_REQUEST
+    );
   }
 
   const user = await User.findById(verificationRecord.userId);
@@ -375,7 +395,9 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
 
   return res.status(200).json({
     success: true,
-    message: 'Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ.',
+    message: req.t
+      ? req.t('auth.verify_email_success', 'Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ.')
+      : 'Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ.',
   });
 });
 

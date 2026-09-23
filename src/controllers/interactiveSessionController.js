@@ -9,6 +9,7 @@ import { AppError } from '../utils/errorHandler.js';
 import { sendResponse } from '../utils/responseHandler.js';
 import { HTTP_STATUS, ROLES } from '../utils/constants.js';
 import { emitSessionEvent } from '../realtime/socketHandler.js';
+import { getOnlineStudents } from '../realtime/sessionPresence.js';
 import { evaluateQuizAnswer } from '../services/interactiveQuizService.js';
 
 /**
@@ -165,12 +166,18 @@ export const getInteractiveSessionById = asyncHandler(async (req, res) => {
     }
   }
 
+  const onlineStudents = getOnlineStudents(id.toString());
+  responseData.connected_students = onlineStudents;
+  responseData.connected_students_count = onlineStudents.length;
+
   sendResponse(
     res,
     HTTP_STATUS.OK,
     'Live session fetched successfully',
     {
       session: responseData,
+      connected_students: onlineStudents,
+      connected_students_count: onlineStudents.length,
       isTeacher,
     }
   );

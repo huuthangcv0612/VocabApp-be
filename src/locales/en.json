@@ -1,0 +1,52 @@
+{
+  "common": {
+    "server_error": "An internal server error occurred. Please try again later.",
+    "not_found": "The requested resource was not found.",
+    "validation_error": "Validation error in submitted data.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "forbidden": "Access is forbidden.",
+    "token_required": "Authorization token is required.",
+    "invalid_token": "Invalid or expired authorization token."
+  },
+  "auth": {
+    "login_success": "Logged in successfully.",
+    "register_success": "Registration successful. Please check your email to verify your account.",
+    "invalid_credentials": "Invalid email or password.",
+    "email_not_verified": "Please verify your email before logging in.",
+    "email_already_exists": "Email already exists.",
+    "username_already_exists": "Username already exists.",
+    "passwords_not_match": "Passwords do not match.",
+    "verify_email_success": "Email verified successfully. You can now log in.",
+    "verify_email_invalid": "Invalid or expired verification link.",
+    "verify_email_expired": "Verification link has expired. Please request a new one.",
+    "verify_email_used": "This verification link has already been used.",
+    "resend_verification_success": "Verification email resent. Please check your inbox.",
+    "resend_verification_cooldown": "Please wait before requesting another verification email.",
+    "password_reset_sent": "If the email exists, a password reset link has been sent.",
+    "password_reset_success": "Password has been reset successfully.",
+    "password_change_success": "Password changed successfully.",
+    "current_password_incorrect": "Current password is incorrect."
+  },
+  "payment": {
+    "order_created": "Order created successfully.",
+    "order_not_found": "Order not found.",
+    "order_already_paid": "This order has already been paid.",
+    "order_cancelled": "Order cancelled successfully.",
+    "webhook_processed": "Payment webhook processed successfully.",
+    "insufficient_amount": "Insufficient transfer amount for this order.",
+    "plan_not_found": "Subscription plan not found or inactive.",
+    "mock_success": "Mock payment completed successfully.",
+    "mock_forbidden_prod": "Mock payments are strictly forbidden in production."
+  },
+  "subscription": {
+    "current_retrieved": "Current subscription retrieved successfully.",
+    "history_retrieved": "Subscription history retrieved successfully.",
+    "premium_required": "This feature requires an active Premium subscription. Please upgrade."
+  },
+  "ai": {
+    "input_required": "Please provide the required input content.",
+    "rate_limit_exceeded": "Too many AI requests. Please slow down and try again later.",
+    "service_unavailable": "AI service is currently busy. Please try again later.",
+    "off_topic_warning": "I am the DeutschUp Assistant, designed to support you with courses, lessons, subscriptions, and platform usage."
+  }
+}

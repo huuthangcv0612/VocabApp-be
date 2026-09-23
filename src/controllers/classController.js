@@ -90,11 +90,45 @@ export const getClasses = asyncHandler(async (req, res) => {
     .populate('teacher_id', 'name email username avatar')
     .sort({ createdAt: -1 });
 
+  const classIds = classes.map((c) => c._id);
+
+  const studentCounts = classIds.length > 0
+    ? await ClassMember.aggregate([
+        {
+          $match: {
+            class_id: { $in: classIds },
+            role: 'student',
+            status: 'active',
+          },
+        },
+        {
+          $group: {
+            _id: '$class_id',
+            count: { $sum: 1 },
+          },
+        },
+      ])
+    : [];
+
+  const countMap = new Map(
+    studentCounts.map((item) => [item._id.toString(), item.count])
+  );
+
+  const enrichedClasses = classes.map((c) => {
+    const classObj = c.toObject ? c.toObject() : { ...c };
+    const count = countMap.get(c._id.toString()) || 0;
+    return {
+      ...classObj,
+      students_count: count,
+      studentCount: count,
+    };
+  });
+
   sendResponse(
     res,
     HTTP_STATUS.OK,
     'Classes fetched successfully',
-    { classes, count: classes.length }
+    { classes: enrichedClasses, count: enrichedClasses.length }
   );
 });
 
@@ -142,13 +176,20 @@ export const getClassById = asyncHandler(async (req, res) => {
     status: 'active',
   });
 
+  const classObj = {
+    ...(targetClass.toObject ? targetClass.toObject() : targetClass),
+    students_count: studentCount,
+    studentCount,
+  };
+
   sendResponse(
     res,
     HTTP_STATUS.OK,
     'Class details fetched successfully',
     {
-      class: targetClass,
+      class: classObj,
       studentCount,
+      students_count: studentCount,
       isTeacher: isOwner || isAdmin,
     }
   );
@@ -326,13 +367,49 @@ export const getMyClasses = asyncHandler(async (req, res) => {
     .sort({ joined_at: -1 });
 
   // Filter out any entries where class_id is null (e.g. archived)
-  const classes = memberships
+  const rawClasses = memberships
     .filter((m) => m.class_id)
-    .map((m) => ({
-      ...m.class_id.toObject(),
-      joined_at: m.joined_at,
-      membership_id: m._id,
-    }));
+    .map((m) => {
+      const classDoc = m.class_id.toObject ? m.class_id.toObject() : m.class_id;
+      return {
+        ...classDoc,
+        joined_at: m.joined_at,
+        membership_id: m._id,
+      };
+    });
+
+  const classIds = rawClasses.map((c) => c._id);
+
+  const studentCounts = classIds.length > 0
+    ? await ClassMember.aggregate([
+        {
+          $match: {
+            class_id: { $in: classIds },
+            role: 'student',
+            status: 'active',
+          },
+        },
+        {
+          $group: {
+            _id: '$class_id',
+            count: { $sum: 1 },
+          },
+        },
+      ])
+    : [];
+
+  const countMap = new Map(
+    studentCounts.map((item) => [item._id.toString(), item.count])
+  );
+
+  const classes = rawClasses.map((c) => {
+    const count = countMap.get(c._id.toString()) || 0;
+    return {
+      ...c,
+      students_count: count,
+      studentCount: count,
+    };
+  });
 
   sendResponse(
     res,
@@ -377,12 +454,22 @@ export const getClassStudents = asyncHandler(async (req, res) => {
 
   const students = members
     .filter((m) => m.user_id)
-    .map((m) => ({
-      membership_id: m._id,
-      joined_at: m.joined_at,
-      status: m.status,
-      user: m.user_id,
-    }));
+    .map((m) => {
+      const u = m.user_id;
+      const userIdStr = (u._id || u.id || u).toString();
+      return {
+        _id: userIdStr,
+        id: userIdStr,
+        student_id: userIdStr,
+        name: u.name || 'Học viên',
+        email: u.email || '',
+        avatar: u.avatar || '',
+        status: m.status,
+        joined_at: m.joined_at,
+        membership_id: m._id,
+        user: u,
+      };
+    });
 
   sendResponse(
     res,

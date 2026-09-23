@@ -32,9 +32,10 @@ import interactiveLessonRoutes from './routes/interactiveLessonRoutes.js';
 import interactiveActivityRoutes from './routes/interactiveActivityRoutes.js';
 import interactiveSessionRoutes from './routes/interactiveSessionRoutes.js';
 
-// Import middlewares
+// Import middlewares & configs
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
-import corsOptions from './config/cors.js';
+import { i18nMiddleware } from './middlewares/i18nMiddleware.js';
+import { corsOptions } from './config/cors.js';
 
 const app = express();
 
@@ -43,28 +44,23 @@ if (process.env.SKIP_DB_CONNECT !== 'true') {
   connectDB();
 }
 
-// Middleware
-// 1. CORS first to handle preflight OPTIONS and set headers before any errors or rate limiters
-app.use(cors(corsOptions));
-
-// 2. Helmet with crossOriginResourcePolicy configured for cross-origin APIs
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  })
-);
-
-// 3. Cookie parser
+// Security Middleware
+app.use(helmet());
 app.use(cookieParser());
+app.use(i18nMiddleware);
 
-// 4. Body parser
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// 5. Rate limiters
+// Rate Limiters
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV === 'test',
@@ -82,9 +78,36 @@ const resendVerificationLimiter = rateLimit({
   },
 });
 
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+  message: {
+    success: false,
+    message: 'Bạn đã gửi quá nhiều yêu cầu AI. Vui lòng thử lại sau ít phút.',
+  },
+});
+
+const ttsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+app.use(cors(corsOptions));
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/api/auth/register', registerLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth/resend-verification', resendVerificationLimiter);
+app.use(['/api/ai/conversations/tts', '/api/ai/conversation/tts'], ttsLimiter);
+app.use('/api/ai', aiLimiter);
 
 // Test endpoints
 app.get('/', (req, res) => {
