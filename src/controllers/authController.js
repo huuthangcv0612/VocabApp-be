@@ -147,7 +147,7 @@ const sendPasswordResetEmail = async (user, token) => {
   const frontendUrl = getFrontendUrl();
   const link = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
-  await sendEmail({
+  return await sendEmail({
     to: user.email,
     subject: 'Reset your password',
     html: `<p>Hello ${user.name || user.email},</p><p>Click <a href="${link}">here</a> to reset your password.</p>`,
@@ -409,12 +409,17 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
 export const forgotPassword = asyncHandler(async (req, res, next) => {
   const email = req.body.email?.trim().toLowerCase();
 
+  console.log('[Forgot Password] Request received:', email);
+
   if (!email) {
     throw new AppError(ERROR_MESSAGES.VALIDATION_ERROR, HTTP_STATUS.BAD_REQUEST);
   }
 
   const user = await User.findOne({ email });
+  console.log('[Forgot Password] User found:', !!user);
+
   if (!user) {
+    console.warn(`[Forgot Password] User not found for email: ${email}. No reset email will be sent.`);
     return res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
   }
 
@@ -427,8 +432,21 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
     tokenHash: hashToken(resetToken),
     expiresAt,
   });
+  console.log('[Forgot Password] Reset token created');
 
-  await sendPasswordResetEmail(user, resetToken);
+  console.log('[Forgot Password] Sending reset email...');
+  try {
+    const info = await sendPasswordResetEmail(user, resetToken);
+    console.log('[Forgot Password] Email sent:', info?.messageId);
+  } catch (error) {
+    console.error('[Forgot Password] Email sending failed:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+    });
+    throw error;
+  }
 
   return res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
 });
