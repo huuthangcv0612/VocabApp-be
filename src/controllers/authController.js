@@ -437,7 +437,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   console.log('[Forgot Password] Sending reset email...');
   try {
     const info = await sendPasswordResetEmail(user, resetToken);
-    console.log('[Forgot Password] Email sent:', info?.messageId);
+    console.log('[Forgot Password] Email sent successfully');
   } catch (error) {
     console.error('[Forgot Password] Email sending failed:', {
       message: error.message,

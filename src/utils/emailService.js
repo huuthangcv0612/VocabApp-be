@@ -5,12 +5,14 @@ let transporter = null;
 export const getTransporter = () => {
   if (!transporter) {
     const host = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
-    const port = Number(process.env.SMTP_PORT) || 587;
-    const isSecure = process.env.SMTP_SECURE === 'true' || (process.env.SMTP_SECURE !== 'false' && port === 465);
+    const port = Number(process.env.SMTP_PORT) || 465;
+    const isSecure = process.env.SMTP_SECURE !== undefined
+      ? process.env.SMTP_SECURE === 'true'
+      : port === 465;
     const smtpUser = process.env.SMTP_USER?.trim();
-    const rawPass = process.env.SMTP_PASS;
-    // Strip spaces in case 16-character Gmail App Password was pasted with spaces
-    const smtpPass = rawPass ? rawPass.trim().replace(/\s+/g, '') : undefined;
+    const smtpPass = process.env.SMTP_PASS
+      ? process.env.SMTP_PASS.trim().replace(/\s+/g, '')
+      : undefined;
 
     transporter = nodemailer.createTransport({
       host,
@@ -20,9 +22,10 @@ export const getTransporter = () => {
         user: smtpUser,
         pass: smtpPass,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      family: 4,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
     });
   }
   return transporter;
@@ -93,7 +96,7 @@ export const sendEmail = async ({ to, subject, html, text }) => {
       text,
     });
 
-    console.log(`[EmailService] Email sent successfully to ${to}. MessageId: ${info.messageId}`);
+    console.log(`[EmailService] Email sent successfully. MessageId: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     // Log safe error details without exposing credentials
