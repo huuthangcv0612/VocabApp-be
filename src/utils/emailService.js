@@ -13,7 +13,7 @@ export const getTransporter = () => {
     const smtpPass = process.env.SMTP_PASS
       ? process.env.SMTP_PASS.trim().replace(/\s+/g, '')
       : undefined;
-
+      
     transporter = nodemailer.createTransport({
       host,
       port,
