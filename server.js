@@ -2,6 +2,7 @@ import 'dotenv/config';
 import http from 'http';
 import app from './src/app.js';
 import { initSocket } from './src/realtime/socketHandler.js';
+import { verifyTransporter } from './src/utils/emailService.js';
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
@@ -18,5 +19,10 @@ server.listen(PORT, () => {
     ║     Real-time: Socket.IO initialized     ║
     ╚══════════════════════════════════════════╝
   `);
+
+  // Verify SMTP connection on server startup for diagnostics
+  verifyTransporter().catch((err) => {
+    console.error('[SMTP] Startup verification caught unexpected error:', err.message);
+  });
 });
 
