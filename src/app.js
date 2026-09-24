@@ -39,6 +39,9 @@ import { corsOptions } from './config/cors.js';
 
 const app = express();
 
+// Trust reverse proxy (e.g. Render, Heroku) so req.ip and express-rate-limit work properly
+app.set('trust proxy', 1);
+
 // Connect to MongoDB (can be skipped during route inspection)
 if (process.env.SKIP_DB_CONNECT !== 'true') {
   connectDB();
