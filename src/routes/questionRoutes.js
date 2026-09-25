@@ -6,13 +6,13 @@ import {
   updateQuestion,
   deleteQuestion,
 } from '../controllers/questionController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-// Require authentication for all question endpoints
-router.use(verifyToken);
+// Require authentication and active account for all question endpoints
+router.use(verifyToken, requireActiveUser);
 
 // User & Admin read endpoints
 router.get('/', getQuestions);

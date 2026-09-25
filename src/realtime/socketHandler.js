@@ -55,6 +55,10 @@ export const initSocket = (httpServer) => {
         return next(new Error('User not found'));
       }
 
+      if (user.status === 'locked' || user.isActive === false) {
+        return next(new Error('ACCOUNT_LOCKED: Tài khoản của bạn đã bị khóa'));
+      }
+
       socket.user = user;
       next();
     } catch (err) {

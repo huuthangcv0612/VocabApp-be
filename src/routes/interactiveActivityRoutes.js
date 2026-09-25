@@ -6,12 +6,12 @@ import {
   updateInteractiveActivity,
   deleteInteractiveActivity,
 } from '../controllers/interactiveActivityController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isTeacherOrAdmin } from '../middlewares/planMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 
 router.post('/', isTeacherOrAdmin, createInteractiveActivity);
 router.get('/', getInteractiveActivities);

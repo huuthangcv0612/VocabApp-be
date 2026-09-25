@@ -6,6 +6,7 @@ import {
   updateUserRole,
   getStatistics,
   toggleUserStatus,
+  updateUserStatus,
 } from '../controllers/adminController.js';
 import adminLevelRoutes from './admin/adminLevelRoutes.js';
 import adminTopicRoutes from './admin/adminTopicRoutes.js';
@@ -13,13 +14,13 @@ import adminUnitRoutes from './admin/adminUnitRoutes.js';
 import adminLessonRoutes from './admin/adminLessonRoutes.js';
 import adminExerciseRoutes from './admin/adminExerciseRoutes.js';
 import adminVocabularyRoutes from './admin/adminVocabularyRoutes.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-// All admin routes require authentication and admin role
-router.use(verifyToken, isAdmin);
+// All admin routes require authentication, active account, and admin role
+router.use(verifyToken, requireActiveUser, isAdmin);
 
 // User & Dashboard Management
 router.get('/users', getAllUsers);
@@ -27,6 +28,8 @@ router.get('/users/:id', getUserById);
 router.delete('/users/:id', deleteUser);
 router.put('/users/:id/role', updateUserRole);
 router.patch('/users/:id/toggle-status', toggleUserStatus);
+router.patch('/users/:id/status', updateUserStatus);
+router.patch('/users/:userId/status', updateUserStatus);
 router.get('/statistics', getStatistics);
 
 // Content Management Modules

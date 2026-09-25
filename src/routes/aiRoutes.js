@@ -7,7 +7,7 @@ import {
 } from '../controllers/aiController.js';
 import { chatWithAssistant } from '../controllers/faqAssistantController.js';
 import aiConversationRoutes from './aiConversationRoutes.js';
-import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { requirePermission } from '../middlewares/planMiddleware.js';
 import { PERMISSIONS } from '../utils/constants.js';
 
@@ -20,7 +20,7 @@ router.post('/assistant/chat', optionalAuth, chatWithAssistant);
 router.use(['/conversations', '/conversation'], aiConversationRoutes);
 
 // Protected learning AI features require Authentication & Premium (ai_learning permission)
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 router.use(requirePermission(PERMISSIONS.AI_LEARNING));
 
 // Đánh giá câu trả lời của học sinh

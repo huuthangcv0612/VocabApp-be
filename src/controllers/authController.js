@@ -47,17 +47,23 @@ const getFrontendUrl = () => {
   return url.replace(/\/+$/, '');
 };
 
-const buildUserPayload = (user) => ({
-  _id: user._id,
-  id: user._id,
-  name: user.name,
-  username: user.username,
-  email: user.email,
-  role: user.role,
-  avatar: user.avatar,
-  isEmailVerified: Boolean(user.isEmailVerified ?? user.emailVerified),
-  emailVerified: Boolean(user.emailVerified ?? user.isEmailVerified),
-});
+const buildUserPayload = (user) => {
+  const isLocked = user.status === 'locked' || user.isActive === false;
+  return {
+    _id: user._id,
+    id: user._id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    status: isLocked ? 'locked' : (user.status || 'active'),
+    lockReason: isLocked ? (user.lockReason || null) : null,
+    lockedAt: isLocked ? (user.lockedAt || null) : null,
+    isEmailVerified: Boolean(user.isEmailVerified ?? user.emailVerified),
+    emailVerified: Boolean(user.emailVerified ?? user.isEmailVerified),
+  };
+};
 
 const buildUserPayloadWithPlan = async (user) => {
   const basePayload = buildUserPayload(user);

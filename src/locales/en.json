@@ -25,7 +25,8 @@
     "password_reset_sent": "If the email exists, a password reset link has been sent.",
     "password_reset_success": "Password has been reset successfully.",
     "password_change_success": "Password changed successfully.",
-    "current_password_incorrect": "Current password is incorrect."
+    "current_password_incorrect": "Current password is incorrect.",
+    "account_locked": "Your account has been locked"
   },
   "payment": {
     "order_created": "Order created successfully.",

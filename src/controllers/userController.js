@@ -27,6 +27,12 @@ export const getUserProfile = asyncHandler(async (req, res, next) => {
   userObj.can_create_class = planInfo.can_create_class;
   userObj.isTeacher = planInfo.isTeacher;
 
+  const isLocked = user.status === 'locked' || user.isActive === false;
+  userObj.status = isLocked ? 'locked' : (user.status || 'active');
+  userObj.lockReason = isLocked ? (user.lockReason || null) : null;
+  userObj.lockedAt = isLocked ? (user.lockedAt || null) : null;
+  delete userObj.lockedBy;
+
   sendResponse(
     res,
     HTTP_STATUS.OK,

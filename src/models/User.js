@@ -48,6 +48,24 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    status: {
+      type: String,
+      enum: ['active', 'locked'],
+      default: 'active',
+    },
+    lockReason: {
+      type: String,
+      default: null,
+    },
+    lockedAt: {
+      type: Date,
+      default: null,
+    },
+    lockedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -76,6 +94,21 @@ const UserSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Synchronize status and isActive, and reset lock fields when active
+UserSchema.pre('save', function () {
+  if (this.isModified('status')) {
+    this.isActive = this.status === 'active';
+  } else if (this.isModified('isActive')) {
+    this.status = this.isActive ? 'active' : 'locked';
+  }
+
+  if (this.status === 'active') {
+    this.lockReason = null;
+    this.lockedAt = null;
+    this.lockedBy = null;
+  }
+});
 
 // Synchronize isEmailVerified and emailVerified
 UserSchema.pre('save', function () {

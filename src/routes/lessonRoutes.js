@@ -10,7 +10,7 @@ import {
   removeVocabularyFromLesson,
 } from '../controllers/lessonController.js';
 import { submitExerciseAnswer } from '../controllers/publicCurriculumController.js';
-import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
@@ -23,12 +23,12 @@ router.post('/:lessonId/exercises/:exerciseId/submit', optionalAuth, submitExerc
 router.post('/:lessonId/submit', optionalAuth, submitExerciseAnswer);
 
 // Protected Admin routes
-router.post('/', verifyToken, isAdmin, createLesson);
-router.put('/:id', verifyToken, isAdmin, updateLesson);
-router.delete('/:id', verifyToken, isAdmin, deleteLesson);
+router.post('/', verifyToken, requireActiveUser, isAdmin, createLesson);
+router.put('/:id', verifyToken, requireActiveUser, isAdmin, updateLesson);
+router.delete('/:id', verifyToken, requireActiveUser, isAdmin, deleteLesson);
 
 // Admin routes for Lesson Vocabularies
-router.post('/:id/vocabularies', verifyToken, isAdmin, addVocabularyToLesson);
-router.delete('/:id/vocabularies/:vocabularyId', verifyToken, isAdmin, removeVocabularyFromLesson);
+router.post('/:id/vocabularies', verifyToken, requireActiveUser, isAdmin, addVocabularyToLesson);
+router.delete('/:id/vocabularies/:vocabularyId', verifyToken, requireActiveUser, isAdmin, removeVocabularyFromLesson);
 
 export default router;

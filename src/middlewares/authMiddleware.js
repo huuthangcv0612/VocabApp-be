@@ -18,7 +18,7 @@ export const verifyToken = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, 404);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, 401);
     }
 
     req.user = user;
@@ -29,6 +29,33 @@ export const verifyToken = async (req, res, next) => {
     }
     next(error);
   }
+};
+
+export const requireActiveUser = (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError(ERROR_MESSAGES.UNAUTHORIZED, 401));
+  }
+
+  const isLocked = req.user.status === 'locked' || req.user.isActive === false;
+  if (isLocked) {
+    const message = req.t
+      ? req.t('auth.account_locked', 'Tài khoản của bạn đã bị khóa')
+      : 'Tài khoản của bạn đã bị khóa';
+
+    const error = new AppError(
+      message,
+      403,
+      [],
+      'ACCOUNT_LOCKED',
+      {
+        lockReason: req.user.lockReason || null,
+        lockedAt: req.user.lockedAt || null,
+      }
+    );
+    return next(error);
+  }
+
+  next();
 };
 
 export const optionalAuth = async (req, res, next) => {

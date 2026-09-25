@@ -8,7 +8,7 @@ import {
   deleteVocabulary,
   searchVocabularies,
 } from '../controllers/vocabularyController.js';
-import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 import { isTeacherOrAdmin } from '../middlewares/planMiddleware.js';
 import {
@@ -26,10 +26,10 @@ router.get('/lektion/:lektionId', optionalAuth, getVocabulariesByLektion);
 router.get('/:id', optionalAuth, getVocabularyById);
 
 // Creation allowed for Admin & Teachers with Custom plan
-router.post('/', verifyToken, isTeacherOrAdmin, validateCreateVocabulary, createVocabulary);
+router.post('/', verifyToken, requireActiveUser, isTeacherOrAdmin, validateCreateVocabulary, createVocabulary);
 
 // Admin-only updates and deletions
-router.put('/:id', verifyToken, isAdmin, validateUpdateVocabulary, updateVocabulary);
-router.delete('/:id', verifyToken, isAdmin, deleteVocabulary);
+router.put('/:id', verifyToken, requireActiveUser, isAdmin, validateUpdateVocabulary, updateVocabulary);
+router.delete('/:id', verifyToken, requireActiveUser, isAdmin, deleteVocabulary);
 
 export default router;

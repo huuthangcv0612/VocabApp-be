@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Vocabulary from '../models/Vocabulary.js';
 import Quiz from '../models/Quiz.js';
@@ -23,6 +24,7 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
   const skip = (page - 1) * limit;
 
   const users = await User.find()
+    .populate('lockedBy', 'name email role')
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });
@@ -51,7 +53,7 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
  * @access  Private/Admin
  */
 export const getUserById = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id).populate('lockedBy', 'name email role');
 
   if (!user) {
     throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
@@ -175,25 +177,117 @@ export const getStatistics = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Deactivate/Activate user
+ * @desc    Deactivate/Activate user (toggle)
  * @route   PATCH /api/admin/users/:id/toggle-status
  * @access  Private/Admin
  */
 export const toggleUserStatus = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const targetId = req.params.userId || req.params.id;
+  if (!mongoose.isValidObjectId(targetId)) {
+    throw new AppError('ID người dùng không hợp lệ', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const user = await User.findById(targetId);
 
   if (!user) {
     throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
   }
 
-  user.isActive = !user.isActive;
+  const currentAdminId = (req.user._id || req.user.id).toString();
+  const isCurrentlyLocked = user.status === 'locked' || user.isActive === false;
+
+  if (!isCurrentlyLocked) {
+    // Attempting to lock
+    if (user._id.toString() === currentAdminId) {
+      throw new AppError('Admin không thể tự khóa tài khoản của chính mình', HTTP_STATUS.BAD_REQUEST);
+    }
+    if (user.role === ROLES.ADMIN) {
+      throw new AppError('Không thể khóa tài khoản của Admin khác', HTTP_STATUS.FORBIDDEN);
+    }
+    user.status = 'locked';
+    user.isActive = false;
+    user.lockReason = req.body?.lockReason?.trim() || 'Tài khoản bị tạm khóa bởi quản trị viên';
+    user.lockedAt = new Date();
+    user.lockedBy = req.user._id || req.user.id;
+  } else {
+    // Attempting to unlock
+    user.status = 'active';
+    user.isActive = true;
+    user.lockReason = null;
+    user.lockedAt = null;
+    user.lockedBy = null;
+  }
+
   await user.save();
+  await user.populate('lockedBy', 'name email role');
 
   sendResponse(
     res,
     HTTP_STATUS.OK,
-    `User ${user.isActive ? 'activated' : 'deactivated'} successfully`,
+    `User ${user.status === 'active' ? 'activated' : 'deactivated'} successfully`,
     { user }
+  );
+});
+
+/**
+ * @desc    Update user status (lock or unlock)
+ * @route   PATCH /api/admin/users/:id/status
+ * @access  Private/Admin
+ */
+export const updateUserStatus = asyncHandler(async (req, res, next) => {
+  const targetId = req.params.userId || req.params.id;
+  const { status, lockReason } = req.body;
+
+  if (!mongoose.isValidObjectId(targetId)) {
+    throw new AppError('ID người dùng không hợp lệ', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  if (!status || !['active', 'locked'].includes(status)) {
+    throw new AppError("Trạng thái không hợp lệ. Chỉ chấp nhận 'active' hoặc 'locked'", HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const targetUser = await User.findById(targetId);
+  if (!targetUser) {
+    throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+  }
+
+  const currentAdminId = (req.user._id || req.user.id).toString();
+
+  // Prevent admin from locking their own account
+  if (targetUser._id.toString() === currentAdminId && status === 'locked') {
+    throw new AppError('Admin không thể tự khóa tài khoản của chính mình', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  // Prevent locking another admin account
+  if (targetUser.role === ROLES.ADMIN && status === 'locked') {
+    throw new AppError('Không thể khóa tài khoản của Admin khác', HTTP_STATUS.FORBIDDEN);
+  }
+
+  if (status === 'locked') {
+    if (!lockReason || typeof lockReason !== 'string' || !lockReason.trim()) {
+      throw new AppError('Lý do khóa tài khoản là bắt buộc', HTTP_STATUS.BAD_REQUEST);
+    }
+    targetUser.status = 'locked';
+    targetUser.isActive = false;
+    targetUser.lockReason = lockReason.trim();
+    targetUser.lockedAt = new Date();
+    targetUser.lockedBy = req.user._id || req.user.id;
+  } else {
+    targetUser.status = 'active';
+    targetUser.isActive = true;
+    targetUser.lockReason = null;
+    targetUser.lockedAt = null;
+    targetUser.lockedBy = null;
+  }
+
+  await targetUser.save();
+  await targetUser.populate('lockedBy', 'name email role');
+
+  sendResponse(
+    res,
+    HTTP_STATUS.OK,
+    status === 'locked' ? 'Khóa tài khoản người dùng thành công' : 'Mở khóa tài khoản người dùng thành công',
+    { user: targetUser }
   );
 });
 
@@ -204,4 +298,5 @@ export default {
   updateUserRole,
   getStatistics,
   toggleUserStatus,
+  updateUserStatus,
 };
