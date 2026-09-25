@@ -4,12 +4,12 @@ import {
   getUserTestHistory,
   getAllTestResults,
 } from '../controllers/testResultController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 
 // User submit test & view own history
 router.post('/', submitTestResult);

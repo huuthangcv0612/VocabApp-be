@@ -10,13 +10,13 @@ import {
   getClassStudents,
   removeStudentFromClass,
 } from '../controllers/classController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { requireCustomPlan, isTeacherOrAdmin } from '../middlewares/planMiddleware.js';
 
 const router = express.Router();
 
-// All class endpoints require authentication
-router.use(verifyToken);
+// All class endpoints require authentication and active account
+router.use(verifyToken, requireActiveUser);
 
 // Student membership endpoints (accessible by Free / Premium students)
 router.post('/join', joinClass);

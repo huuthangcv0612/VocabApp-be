@@ -6,12 +6,12 @@ import {
   cancelOrder,
   getAllOrdersAdmin,
 } from '../controllers/orderController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 
 router.post('/', createOrder);
 router.get('/', getUserOrders);

@@ -2,10 +2,12 @@
  * Custom Error Class
  */
 export class AppError extends Error {
-  constructor(message, statusCode, errors = []) {
+  constructor(message, statusCode, errors = [], code = null, data = null) {
     super(message);
     this.statusCode = statusCode;
     this.errors = errors;
+    this.code = code;
+    this.data = data;
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -30,11 +32,22 @@ export const sendErrorResponse = (error, res) => {
 
   const errors = Array.isArray(error.errors) ? error.errors : [];
 
-  res.status(statusCode).json({
+  const response = {
     success: false,
     message,
-    errors,
-  });
+  };
+
+  if (error.code) {
+    response.code = error.code;
+  }
+
+  if (error.data !== undefined && error.data !== null) {
+    response.data = error.data;
+  }
+
+  response.errors = errors;
+
+  res.status(statusCode).json(response);
 };
 
 export default sendErrorResponse;

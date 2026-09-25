@@ -8,12 +8,12 @@ import {
   submitSessionResponse,
   endInteractiveSession,
 } from '../controllers/interactiveSessionController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { isTeacherOrAdmin } from '../middlewares/planMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 
 // Teacher live session control
 router.post('/', isTeacherOrAdmin, startInteractiveSession);

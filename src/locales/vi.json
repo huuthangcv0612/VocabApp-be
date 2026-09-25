@@ -25,7 +25,8 @@
     "password_reset_sent": "Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi.",
     "password_reset_success": "Mật khẩu đã được đặt lại thành công.",
     "password_change_success": "Đổi mật khẩu thành công.",
-    "current_password_incorrect": "Mật khẩu hiện tại không chính xác."
+    "current_password_incorrect": "Mật khẩu hiện tại không chính xác.",
+    "account_locked": "Tài khoản của bạn đã bị khóa"
   },
   "payment": {
     "order_created": "Đơn hàng đã được tạo thành công.",

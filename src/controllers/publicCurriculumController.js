@@ -97,6 +97,22 @@ export const submitExerciseAnswer = asyncHandler(async (req, res) => {
     throw new AppError('Answer payload is required', HTTP_STATUS.BAD_REQUEST);
   }
 
+  if (req.user && (req.user.status === 'locked' || req.user.isActive === false)) {
+    const message = req.t
+      ? req.t('auth.account_locked', 'Tài khoản của bạn đã bị khóa')
+      : 'Tài khoản của bạn đã bị khóa';
+    throw new AppError(
+      message,
+      HTTP_STATUS.FORBIDDEN,
+      [],
+      'ACCOUNT_LOCKED',
+      {
+        lockReason: req.user.lockReason || null,
+        lockedAt: req.user.lockedAt || null,
+      }
+    );
+  }
+
   const exercise = await Exercise.findOne({ _id: exerciseId, lesson_id: lessonId });
   if (!exercise) {
     throw new AppError('Exercise not found for this lesson', HTTP_STATUS.NOT_FOUND);

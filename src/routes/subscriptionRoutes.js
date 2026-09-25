@@ -3,11 +3,11 @@ import {
   getMySubscription,
   getSubscriptionHistory,
 } from '../controllers/subscriptionController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 
 router.get('/current', getMySubscription);
 router.get('/history', getSubscriptionHistory);

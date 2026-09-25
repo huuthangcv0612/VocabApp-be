@@ -10,7 +10,7 @@ import {
   googleLogin,
   getMe,
 } from '../controllers/authController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get('/reset-password', (req, res) => {
   return res.redirect(`${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`);
 });
 router.post('/reset-password', resetPassword);
-router.post('/change-password', verifyToken, changePassword);
+router.post('/change-password', verifyToken, requireActiveUser, changePassword);
 router.post('/google', googleLogin);
 router.get('/me', verifyToken, getMe);
 

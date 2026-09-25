@@ -6,7 +6,7 @@ import {
   getSession,
   textToSpeech,
 } from '../controllers/aiConversationController.js';
-import { verifyToken, optionalAuth } from '../middlewares/authMiddleware.js';
+import { verifyToken, optionalAuth, requireActiveUser } from '../middlewares/authMiddleware.js';
 import { requirePermission } from '../middlewares/planMiddleware.js';
 import { PERMISSIONS } from '../utils/constants.js';
 
@@ -16,7 +16,7 @@ const router = express.Router();
 router.post('/tts', optionalAuth, textToSpeech);
 
 // Require authentication and Premium ai_learning permission for AI conversation session endpoints
-router.use(verifyToken);
+router.use(verifyToken, requireActiveUser);
 router.use(requirePermission(PERMISSIONS.AI_LEARNING));
 
 // Start conversation

@@ -10,12 +10,12 @@ import {
   markWordLearned,
   completeLektion,
 } from '../controllers/progressController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireActiveUser } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Require authentication for all user progress routes
-router.use(verifyToken);
+// Require authentication and active account for all user progress routes
+router.use(verifyToken, requireActiveUser);
 
 router.get('/overview', getProgressOverview);
 router.get('/', getUserProgressOverview);
